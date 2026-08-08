@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from config import APP_NAME, APP_VERSION, WEB_HOST, WEB_PORT
+from config import APP_NAME, APP_VERSION, DB_HOST, DB_PORT, DB_NAME, WEB_HOST, WEB_PORT
 from database import init_db, is_online
 from deps import get_current_user
 from routers import (
@@ -57,6 +57,19 @@ app.include_router(sync_routes.router)
 def api_status():
     # Lightweight health check; lets the frontend know if the DB is reachable.
     return {"online": is_online()}
+
+
+@app.get("/api/health")
+def api_health():
+    # Deployment diagnostic: reveals which DB the running function is actually
+    # configured with (no secrets) so connection issues are easy to trace.
+    return {
+        "online": is_online(),
+        "db_host": DB_HOST,
+        "db_port": DB_PORT,
+        "db_name": DB_NAME,
+        "version": APP_VERSION,
+    }
 
 
 @app.on_event("startup")
