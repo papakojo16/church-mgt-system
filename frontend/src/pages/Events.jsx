@@ -1,0 +1,284 @@
+import React, { useState } from 'react';
+import { useAuth } from '../auth/AuthContext.jsx';
+import { api } from '../api/client.js';
+import { useFetch } from '../api/useFetch.js';
+import { useSnackbar, Modal, Confirm, fmtDate, Loading, Empty, PageBanner } from '../ui/Shared.jsx';
+import { Icon } from '../ui/icons.jsx';
+
+// Parse a date string (which may arrive with a space instead of 'T') into a Date, tolerating bad input.
+function toDate(v) {
+  if (!v) return null;
+  const d = new Date(String(v).replace(' ', 'T'));
+  return isNaN(d) ? null : d;
+}
+
+// Derive a display status for an event by comparing its (date-only) range against today; recurring events are always "upcoming".
+function eventStatus(e) {
+  if (e.is_recurring) return 'upcoming';
+  const start = toDate(e.event_date);
+  if (!start) return null;
+  const end = toDate(e.end_date) || start;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const sDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const eDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  if (sDay > today) return 'upcoming';
+  if (eDay < today) return 'past';
+  return 'started';
+}
+
+// Small coloured pill showing an event's current status.
+function StatusBadge({ status }) {
+  if (!status) return null;
+  const label = status.charAt(0).toUpperCase() + status.slice(1);
+  return (
+    <span className={`event-status ${status}`}>
+      <span className="dot" />
+      {label}
+    </span>
+  );
+}
+
+// Events page: lists events with status badges; admins can create/edit/delete events and record attendance.
+export default function Events() {
+  const { user } = useAuth();
+  const snackbar = useSnackbar();
+  const isWriter = ['admin'].includes(user?.role);
+
+  const { data, loading, reload } = useFetch(() => api.get('/api/events'), []);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [attendanceFor, setAttendanceFor] = useState(null);
+  const [form, setForm] = useState({ title: '', description: '', event_date: '', end_date: '', location: '', is_recurring: false, day_of_week: 'Sunday' });
+  const [busy, setBusy] = useState(false);
+
+  function set(k, v) {
+    setForm((f) => ({ ...f, [k]: v }));
+  }
+
+  function openAdd() {
+    setEditing(null);
+    setForm({ title: '', description: '', event_date: '', end_date: '', location: '', is_recurring: false, day_of_week: 'Sunday' });
+    setFormOpen(true);
+  }
+
+  function openEdit(e) {
+    setEditing(e);
+    setForm({
+      title: e.title,
+      description: e.description || '',
+      event_date: e.event_date ? fmtDate(e.event_date) : '',
+      end_date: e.end_date ? fmtDate(e.end_date) : '',
+      location: e.location || '',
+      is_recurring: !!e.is_recurring,
+      day_of_week: e.day_of_week || 'Sunday',
+    });
+    setFormOpen(true);
+  }
+
+  async function save(e) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const body = { ...form };
+      // Send only the fields that make sense: no end date for single-day events, no weekday for non-recurring ones.
+      if (!body.end_date) delete body.end_date;
+      if (!body.is_recurring) delete body.day_of_week;
+      if (editing) {
+        await api.put(`/api/events/${editing.id}`, body, { entity: 'event', op: 'update' });
+        snackbar('Event updated', 'success');
+      } else {
+        await api.post('/api/events', body, { entity: 'event', op: 'create' });
+        snackbar('Event created', 'success');
+      }
+      setFormOpen(false);
+      reload().catch(() => {});
+    } catch (err) {
+      snackbar(err.message || 'Save failed', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function confirmDelete() {
+    try {
+      await api.del(`/api/events/${deleting.id}`, { entity: 'event', op: 'delete' });
+      snackbar('Event deleted', 'success');
+      setDeleting(null);
+      reload().catch(() => {});
+    } catch (err) {
+      snackbar(err.message || 'Delete failed', 'error');
+    }
+  }
+
+  const list = data || [];
+
+  return (
+    <div>
+      <PageBanner
+        title="Events"
+        subtitle={`${list.length} events`}
+        actions={
+          isWriter ? (
+            <button className="btn primary" onClick={openAdd}>
+              <Icon name="plus" size={16} /> New Event
+            </button>
+          ) : null
+        }
+      />
+
+      {loading ? (
+        <Loading />
+      ) : list.length === 0 ? (
+        <Empty label="No events scheduled." />
+      ) : (
+        <div className="grid two">
+          {list.map((e) => (
+            <div className="card" key={e.id}>
+              <div className="row between">
+                <h3 style={{ marginBottom: 0 }}>{e.title}</h3>
+                <StatusBadge status={eventStatus(e)} />
+              </div>
+              <p className="muted mt-8">
+                {e.event_date ? fmtDate(e.event_date) : e.day_of_week || ''}
+                {e.end_date ? ` \u2013 ${fmtDate(e.end_date)}` : ''}
+                {e.location ? ` \u2022 ${e.location}` : ''}
+                {e.is_recurring ? ' \u2022 Recurring' : ''}
+              </p>
+              {e.description && <p className="muted mt-8">{e.description}</p>}
+              <div className="row mt-16">
+                {isWriter && (
+                  <>
+                    <button className="btn small secondary" onClick={() => openEdit(e)}>
+                      Edit
+                    </button>
+                    <button className="btn small secondary" onClick={() => setAttendanceFor(e)}>
+                      Attendance
+                    </button>
+                    <button className="btn small danger" onClick={() => setDeleting(e)}>
+                      Delete
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Modal
+        title={editing ? 'Edit Event' : 'New Event'}
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        footer={
+          <>
+            <button className="btn secondary" onClick={() => setFormOpen(false)}>
+              Cancel
+            </button>
+            <button className="btn primary" onClick={save} disabled={busy}>
+              {busy ? 'Saving\u2026' : 'Save'}
+            </button>
+          </>
+        }
+      >
+        <form onSubmit={save}>
+          <div className="field">
+            <label>Title</label>
+            <input value={form.title} onChange={(e) => set('title', e.target.value)} required />
+          </div>
+          <div className="field">
+            <label>Description</label>
+            <textarea value={form.description} onChange={(e) => set('description', e.target.value)} />
+          </div>
+          <div className="form-row">
+            <div className="field">
+              <label>Event date</label>
+              <input type="date" value={form.event_date} onChange={(e) => set('event_date', e.target.value)} required={!form.is_recurring} />
+            </div>
+            <div className="field">
+              <label>End date (multi-day)</label>
+              <input type="date" value={form.end_date} onChange={(e) => set('end_date', e.target.value)} />
+            </div>
+          </div>
+          <div className="field">
+            <label>Location</label>
+            <input value={form.location} onChange={(e) => set('location', e.target.value)} />
+          </div>
+          <div className="form-row">
+            <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <input type="checkbox" checked={form.is_recurring} onChange={(e) => set('is_recurring', e.target.checked)} id="recur" />
+              <label htmlFor="recur" style={{ color: 'var(--text)' }}>Recurring event</label>
+            </div>
+            <div className="field">
+              <label>Day of week</label>
+              <select value={form.day_of_week} onChange={(e) => set('day_of_week', e.target.value)} disabled={!form.is_recurring}>
+                {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d) => (
+                  <option key={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </form>
+      </Modal>
+
+      {attendanceFor && <AttendanceModal event={attendanceFor} onClose={() => setAttendanceFor(null)} snackbar={snackbar} />}
+
+      {deleting && (
+        <Confirm title="Delete Event" message={`Delete "${deleting.title}"?`} onYes={confirmDelete} onNo={() => setDeleting(null)} />
+      )}
+    </div>
+  );
+}
+
+// Popup for recording a single member's attendance for the selected event.
+function AttendanceModal({ event, onClose, snackbar }) {
+  const { data: members } = useFetch(() => api.get('/api/members').catch(() => []), []);
+  const [memberId, setMemberId] = useState('');
+  const [status, setStatus] = useState('Present');
+  const [busy, setBusy] = useState(false);
+
+  async function save(e) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      // Link the attendance to the event date, falling back to today if the event has no date (e.g. recurring).
+      await api.post(`/api/events/${event.id}/attendance`, { member_id: Number(memberId), status, service_date: fmtDate(event.event_date) || new Date().toISOString().slice(0, 10) });
+      snackbar('Attendance recorded', 'success');
+      setMemberId('');
+    } catch (err) {
+      snackbar(err.message || 'Failed to record', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal title={`Attendance \u2013 ${event.title}`} open={true} onClose={onClose}>
+      <form onSubmit={save}>
+        <div className="field">
+          <label>Member</label>
+          <select value={memberId} onChange={(e) => setMemberId(e.target.value)} required>
+            <option value="">Select member\u2026</option>
+            {(members || []).map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.full_name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label>Status</label>
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option>Present</option>
+            <option>Absent</option>
+            <option>Excused</option>
+          </select>
+        </div>
+        <button className="btn primary" style={{ width: '100%' }} disabled={busy}>
+          {busy ? 'Saving\u2026' : 'Record Attendance'}
+        </button>
+      </form>
+    </Modal>
+  );
+}

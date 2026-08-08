@@ -1,0 +1,44 @@
+# Environment & secrets (never commit)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Node / frontend build artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+*.local
+
+# Stale v1.0.0 module copies at the repo root
+# (live code lives in backend/ — v2.0.0)
+/config.py
+/auth.py
+/database.py
+/finance.py
+/stats.py
+/announcements.py
+/events.py
+/ministries.py
+/receipts.py
+/church_content.py
+/activity_logs.py
+/theme_config.py
+
+# Legacy static site (superseded by the React app in frontend/)
+/static/
+
+# OS junk folder
+/Microsoft/
+
+# Generated export reports
+financial_report_*.csv
+
+# Logs & misc
+*.log
+.DS_Store
+Thumbs.db
