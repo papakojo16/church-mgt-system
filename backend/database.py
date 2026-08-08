@@ -217,7 +217,7 @@ def init_db():
             name VARCHAR(100) NOT NULL,
             description TEXT,
             leader_id INT,
-            roles TEXT DEFAULT '[]',
+            roles TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (leader_id) REFERENCES users(id) ON DELETE SET NULL
         )
@@ -225,7 +225,7 @@ def init_db():
         # Idempotent migrations for columns that were added after the initial
         # schema; failures are ignored since the column may already exist.
         try:
-            cur.execute("ALTER TABLE ministries ADD COLUMN roles TEXT DEFAULT '[]'")
+            cur.execute("ALTER TABLE ministries ADD COLUMN roles TEXT")
         except Exception:
             pass
 
