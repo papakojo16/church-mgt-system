@@ -86,11 +86,16 @@ if DIST_DIR.exists():
     app.mount("/assets", StaticFiles(directory=DIST_DIR / "assets"), name="assets")
 else:
     # Mount an empty dir so the /assets path doesn't 404 during development.
-    from fastapi.staticfiles import StaticFiles as SF
+    try:
+        from fastapi.staticfiles import StaticFiles as SF
 
-    assets_dir = DIST_DIR / "assets"
-    assets_dir.mkdir(parents=True, exist_ok=True)
-    app.mount("/assets", SF(directory=str(assets_dir)), name="assets")
+        assets_dir = DIST_DIR / "assets"
+        assets_dir.mkdir(parents=True, exist_ok=True)
+        app.mount("/assets", SF(directory=str(assets_dir)), name="assets")
+    except OSError:
+        # Read-only filesystem (e.g. serverless runtimes like Vercel): skip
+        # the empty mount; the SPA fallback route still works.
+        pass
 
 
 @app.get("/{path:path}", include_in_schema=False)
