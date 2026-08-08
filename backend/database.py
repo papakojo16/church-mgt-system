@@ -1,15 +1,10 @@
 import socket
-import threading
 
 import pymysql
 from config import DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
 
 # Tracks whether the last DB connectivity probe succeeded (also mutated in init_db).
 _online_status = {"is_online": True}
-
-# One connection per thread: FastAPI runs sync handlers in a thread pool, so
-# each worker thread lazily creates and reuses its own DB connection.
-_thread_local = threading.local()
 
 
 def _connect():
@@ -26,31 +21,12 @@ def _connect():
     )
 
 
-class _PooledConnection:
-    # Wraps a thread-local connection so callers can call .close() freely
-    # without actually severing the pooled connection underneath them.
-    __slots__ = ("_conn",)
-
-    def __init__(self, conn):
-        self._conn = conn
-
-    def __getattr__(self, name):
-        return getattr(self._conn, name)
-
-    def cursor(self, *args, **kwargs):
-        return self._conn.cursor(*args, **kwargs)
-
-    def close(self):
-        pass
-
-
 def get_connection():
-    # Lazily create a connection on first use per thread; reconnect if dropped.
-    conn = getattr(_thread_local, "conn", None)
-    if conn is None or not conn.open:
-        conn = _connect()
-        _thread_local.conn = conn
-    return _PooledConnection(conn)
+    # Serverless-friendly connection handling: every call opens a fresh
+    # connection which the caller must close with conn.close(). This works on
+    # short-lived serverless processes (e.g. Vercel Functions) as well as
+    # long-lived uvicorn workers, where one connection per request is fine.
+    return _connect()
 
 
 def is_online():
