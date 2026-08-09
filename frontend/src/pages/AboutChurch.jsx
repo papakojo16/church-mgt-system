@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { getPublicData } from '../api/publicData.js';
-import { fmtDate, fmtEventWhen, SocialLinks } from '../ui/Shared.jsx';
+import { fmtDate, fmtEventWhen, SocialLinks, Loading } from '../ui/Shared.jsx';
 import { useReveal } from '../ui/hooks.jsx';
 import { Icon } from '../ui/icons.jsx';
 import { slugify } from './AboutDetail.jsx';
@@ -80,11 +80,17 @@ export default function AboutChurch() {
       </div>
 
       <div className="ab-panel" key={tab}>
-        {tab === 'about' && <AboutPanel data={data} onOpen={(b) => navigate(`/about-church/basic/${slugify(b.title)}`)} />}
-        {tab === 'organisations' && <OrganisationsPanel data={data} onOpen={(o) => navigate(`/about-church/organisation/${slugify(o.title)}`)} />}
-        {tab === 'activities' && <ActivitiesPanel data={data} onOpen={(a) => navigate(`/about-church/activity/${slugify(a.title)}`)} />}
-        {tab === 'events' && <EventsPanel data={data} />}
-        {tab === 'announcements' && <AnnouncementsPanel data={data} />}
+        {!data ? (
+          <Loading label="Loading church content…" />
+        ) : (
+          <>
+            {tab === 'about' && <AboutPanel data={data} onOpen={(b) => navigate(`/about-church/basic/${slugify(b.title)}`)} />}
+            {tab === 'organisations' && <OrganisationsPanel data={data} onOpen={(o) => navigate(`/about-church/organisation/${slugify(o.title)}`)} />}
+            {tab === 'activities' && <ActivitiesPanel data={data} onOpen={(a) => navigate(`/about-church/activity/${slugify(a.title)}`)} />}
+            {tab === 'events' && <EventsPanel data={data} />}
+            {tab === 'announcements' && <AnnouncementsPanel data={data} />}
+          </>
+        )}
       </div>
 
       <section className="lp-cta-band">

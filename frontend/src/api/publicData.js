@@ -37,3 +37,10 @@ export function clearPublicData() {
   cached = null;
   inflight = null;
 }
+
+// Kick off the public-content fetch at app startup (fired from main.jsx) so the
+// About/Landing pages render instantly later — even for users who skip the
+// landing page and go straight to the dashboard.
+export function preloadPublicData() {
+  getPublicData().catch(() => {});
+}

@@ -4,7 +4,13 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { AuthProvider } from './auth/AuthContext.jsx';
 import { SnackbarProvider } from './ui/Shared.jsx';
+import { preloadPublicData } from './api/publicData.js';
 import './styles.css';
+
+// Warm the shared public-content cache (church name/logo, About Us, events,
+// announcements) as early as possible so navigating to the About pages from the
+// dashboard is instant instead of waiting on a fresh download.
+preloadPublicData();
 
 // Registers the service worker that enables offline support (caching + sync) for the app.
 // When an updated worker activates on an already-controlled page, reload to pick up the new version.
