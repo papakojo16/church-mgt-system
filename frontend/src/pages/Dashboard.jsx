@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api } from '../api/client.js';
 import { useFetch } from '../api/useFetch.js';
-import { Card, fmtMoney, fmtDate, Empty, Loading } from '../ui/Shared.jsx';
+import { Card, fmtMoney, fmtEventWhen, Empty, Loading } from '../ui/Shared.jsx';
 import { Icon } from '../ui/icons.jsx';
 
 // Dashboard is the post-login landing page: shows church stats plus upcoming events and announcements.
@@ -89,7 +89,7 @@ export default function Dashboard() {
               <div className="row between" key={e.id} style={{ padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
                 <div>
                   <b>{e.title}</b>
-                  <div className="muted">{fmtDate(e.event_date)}{e.location ? ` \u2022 ${e.location}` : ''}</div>
+                  <div className="muted">{fmtEventWhen(e)}{e.location ? ` \u2022 ${e.location}` : ''}</div>
                 </div>
                 {isWriter && (
                   <button className="btn small secondary" onClick={() => navigate('/events')}>

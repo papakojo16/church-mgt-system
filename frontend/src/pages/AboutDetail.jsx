@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api } from '../api/client.js';
 import { useReveal } from '../ui/hooks.jsx';
-import { SocialLinks, Confirm } from '../ui/Shared.jsx';
+import { SocialLinks, Confirm, fmtEventWhen } from '../ui/Shared.jsx';
 import { Icon } from '../ui/icons.jsx';
 
 // Convert a title into a URL-safe slug (lowercase, hyphens, no leading/trailing dash). Also imported by AboutChurch.jsx.
@@ -120,7 +120,7 @@ export default function AboutDetail({ kind }) {
                 <div className="ab-event-list">
                   {item.events.map((e) => (
                     <div className="ab-event" key={e.id}>
-                      <div className="ab-event-date">{fmtDate(e.event_date)}</div>
+                      <div className="ab-event-date">{fmtEventWhen(e)}</div>
                       <div className="ab-event-body">
                         <h4>{e.title}</h4>
                         {e.location && <p className="muted"><Icon name="map-pin" size={13} /> {e.location}</p>}

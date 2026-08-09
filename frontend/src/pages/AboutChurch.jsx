@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api } from '../api/client.js';
-import { fmtDate, SocialLinks } from '../ui/Shared.jsx';
+import { fmtDate, fmtEventWhen, SocialLinks } from '../ui/Shared.jsx';
 import { useReveal } from '../ui/hooks.jsx';
 import { Icon } from '../ui/icons.jsx';
 import { slugify } from './AboutDetail.jsx';
@@ -196,7 +196,7 @@ function EventsPanel({ data }) {
     <div className="grid two">
       {events.map((e) => (
         <div className="ab-item" key={e.id}>
-          <div className="ab-sub">{fmtDate(e.event_date)}</div>
+          <div className="ab-sub">{fmtEventWhen(e)}</div>
           <h3>{e.title}</h3>
           {e.location && (
             <p className="muted" style={{ fontSize: 13 }}>

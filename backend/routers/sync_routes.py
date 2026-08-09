@@ -78,6 +78,13 @@ def _replay(op, user):
 
     elif entity == "event":
         if operation == "create":
+            if p.get("is_recurring"):
+                return events.create_recurring_event(
+                    p.get("title", ""), p.get("description", ""),
+                    p.get("day_of_week", "Sunday"), p.get("location", ""),
+                    p.get("created_by", user_id),
+                    start_time=p.get("start_time"), end_time=p.get("end_time"),
+                )
             return events.create_event(
                 p.get("title", ""), p.get("description", ""),
                 p.get("event_date"), p.get("location", ""), p.get("created_by", user_id),

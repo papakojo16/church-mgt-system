@@ -147,6 +147,53 @@ export function SocialLinks({ social }) {
 }
 
 /* ---------- Formatting helpers ---------- */
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const FULL_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+// Parse a date string (which may arrive with a space instead of 'T') into a Date, tolerating bad input.
+export function toDate(v) {
+  if (!v) return null;
+  const d = new Date(String(v).replace(' ', 'T'));
+  return isNaN(d) ? null : d;
+}
+
+const pad2 = (n) => String(n).padStart(2, '0');
+
+// "HH:MM" from a Date, matching <input type="time"> values.
+export function timeValue(d) {
+  if (!d) return '';
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+// "YYYY-MM-DDTHH:MM" from a Date, matching <input type="datetime-local"> values.
+export function toInputValue(d) {
+  if (!d) return '';
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${timeValue(d)}`;
+}
+
+function dayLabel(d) {
+  return `${DAYS[d.getDay()]}, ${pad2(d.getDate())} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+// Human-readable "when" text for an event, honouring single-day, multi-day and
+// recurring schedules (recurring stores its weekday in recurrence_rule).
+export function fmtEventWhen(e) {
+  const start = toDate(e?.event_date);
+  if (!start) return e?.recurrence_rule || e?.day_of_week || '';
+  const end = toDate(e?.end_date);
+  if (e?.is_recurring) {
+    const day = e.recurrence_rule || e.day_of_week || '';
+    const t = timeValue(start);
+    return end ? `Every ${day} ${t} \u2013 ${timeValue(end)}` : `Every ${day} at ${t}`;
+  }
+  if (!end) return `${dayLabel(start)} at ${timeValue(start)}`;
+  if (start.toDateString() === end.toDateString()) {
+    return `${dayLabel(start)}, ${timeValue(start)} \u2013 ${timeValue(end)}`;
+  }
+  return `${dayLabel(start)} ${timeValue(start)} \u2013 ${dayLabel(end)} ${timeValue(end)}`;
+}
+
 // Money as locale string with exactly 2 decimals.
 export function fmtMoney(n) {
   return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });

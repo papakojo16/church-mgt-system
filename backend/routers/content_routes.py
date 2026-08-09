@@ -147,14 +147,18 @@ def upcoming_events(limit: int = 10, user: dict = Depends(require(*ALL_LOGGED)))
 @router.post("/events")
 def create_event(payload: dict, user: dict = Depends(require(*WRITERS))):
     title = (payload.get("title") or "").strip()
-    if not title or not payload.get("event_date"):
-        raise HTTPException(status_code=400, detail="Title and event date are required")
+    if not title:
+        raise HTTPException(status_code=400, detail="Title is required")
+    if not payload.get("is_recurring") and not payload.get("event_date"):
+        raise HTTPException(status_code=400, detail="Event date is required for non-recurring events")
     # Route to the matching event model: recurring, multi-day, or single event.
     if payload.get("is_recurring"):
         event_id = events.create_recurring_event(
             title, payload.get("description", ""),
             payload.get("day_of_week", "Sunday"),
             payload.get("location", ""), user["id"],
+            start_time=payload.get("start_time"),
+            end_time=payload.get("end_time"),
         )
     elif payload.get("end_date"):
         event_id = events.create_multi_day_event(

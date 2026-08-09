@@ -1,4 +1,4 @@
-const CACHE = 'mtolivet-v29';
+const CACHE = 'mtolivet-v31';
 const SHELL = ['/', '/index.html', '/manifest.json', '/icons/favicon.png', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {

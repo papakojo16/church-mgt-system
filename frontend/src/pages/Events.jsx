@@ -2,29 +2,40 @@ import React, { useState } from 'react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api } from '../api/client.js';
 import { useFetch } from '../api/useFetch.js';
-import { useSnackbar, Modal, Confirm, fmtDate, Loading, Empty, PageBanner } from '../ui/Shared.jsx';
+import { useSnackbar, Modal, Confirm, fmtDate, fmtEventWhen, toDate, timeValue, toInputValue, Loading, Empty, PageBanner } from '../ui/Shared.jsx';
 import { Icon } from '../ui/icons.jsx';
 
-// Parse a date string (which may arrive with a space instead of 'T') into a Date, tolerating bad input.
-function toDate(v) {
-  if (!v) return null;
-  const d = new Date(String(v).replace(' ', 'T'));
-  return isNaN(d) ? null : d;
-}
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-// Derive a display status for an event by comparing its (date-only) range against today; recurring events are always "upcoming".
+// Derive a display status for an event by comparing its start/end times against now;
+// a one-off event turns "past" once 30 minutes after its end time have elapsed.
 function eventStatus(e) {
-  if (e.is_recurring) return 'upcoming';
   const start = toDate(e.event_date);
   if (!start) return null;
-  const end = toDate(e.end_date) || start;
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const sDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-  const eDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-  if (sDay > today) return 'upcoming';
-  if (eDay < today) return 'past';
-  return 'started';
+  const end = toDate(e.end_date) || start;
+  const pastAt = new Date(end.getTime() + 30 * 60000);
+
+  if (e.is_recurring) {
+    // Compare against the next occurrence: this week's slot, rolled to next week
+    // once this week's has fully passed (plus the 30-min grace period).
+    const dayIdx = WEEKDAYS.indexOf(e.recurrence_rule || e.day_of_week || '');
+    if (dayIdx < 0) return 'upcoming';
+    let diff = dayIdx - now.getDay();
+    let occStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, start.getHours(), start.getMinutes());
+    let occEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, end.getHours(), end.getMinutes());
+    if (now > new Date(occEnd.getTime() + 30 * 60000)) {
+      diff += 7;
+      occStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, start.getHours(), start.getMinutes());
+      occEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, end.getHours(), end.getMinutes());
+    }
+    if (now >= occStart) return 'started';
+    return 'upcoming';
+  }
+
+  if (now > pastAt) return 'past';
+  if (now >= start) return 'started';
+  return 'upcoming';
 }
 
 // Small coloured pill showing an event's current status.
@@ -39,7 +50,7 @@ function StatusBadge({ status }) {
   );
 }
 
-// Events page: lists events with status badges; admins can create/edit/delete events and record attendance.
+// Events page: lists events with date/time and status badges; admins can create/edit/delete events and record attendance.
 export default function Events() {
   const { user } = useAuth();
   const snackbar = useSnackbar();
@@ -50,7 +61,7 @@ export default function Events() {
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [attendanceFor, setAttendanceFor] = useState(null);
-  const [form, setForm] = useState({ title: '', description: '', event_date: '', end_date: '', location: '', is_recurring: false, day_of_week: 'Sunday' });
+  const [form, setForm] = useState({ title: '', description: '', event_date: '', end_date: '', location: '', is_recurring: false, day_of_week: 'Sunday', start_time: '', end_time: '' });
   const [busy, setBusy] = useState(false);
 
   function set(k, v) {
@@ -59,7 +70,7 @@ export default function Events() {
 
   function openAdd() {
     setEditing(null);
-    setForm({ title: '', description: '', event_date: '', end_date: '', location: '', is_recurring: false, day_of_week: 'Sunday' });
+    setForm({ title: '', description: '', event_date: '', end_date: '', location: '', is_recurring: false, day_of_week: 'Sunday', start_time: '', end_time: '' });
     setFormOpen(true);
   }
 
@@ -68,11 +79,13 @@ export default function Events() {
     setForm({
       title: e.title,
       description: e.description || '',
-      event_date: e.event_date ? fmtDate(e.event_date) : '',
-      end_date: e.end_date ? fmtDate(e.end_date) : '',
+      event_date: toInputValue(toDate(e.event_date)),
+      end_date: toInputValue(toDate(e.end_date)),
       location: e.location || '',
       is_recurring: !!e.is_recurring,
-      day_of_week: e.day_of_week || 'Sunday',
+      day_of_week: e.recurrence_rule || e.day_of_week || 'Sunday',
+      start_time: timeValue(toDate(e.event_date)),
+      end_time: timeValue(toDate(e.end_date)),
     });
     setFormOpen(true);
   }
@@ -81,10 +94,17 @@ export default function Events() {
     e.preventDefault();
     setBusy(true);
     try {
-      const body = { ...form };
-      // Send only the fields that make sense: no end date for single-day events, no weekday for non-recurring ones.
-      if (!body.end_date) delete body.end_date;
-      if (!body.is_recurring) delete body.day_of_week;
+      // Recurring events carry their schedule as weekday + times; one-off events
+      // carry full datetimes (optionally an end date for multi-day events).
+      const body = { title: form.title, description: form.description, location: form.location, is_recurring: form.is_recurring };
+      if (form.is_recurring) {
+        body.day_of_week = form.day_of_week;
+        if (form.start_time) body.start_time = form.start_time;
+        if (form.end_time) body.end_time = form.end_time;
+      } else {
+        if (form.event_date) body.event_date = form.event_date;
+        if (form.end_date) body.end_date = form.end_date;
+      }
       if (editing) {
         await api.put(`/api/events/${editing.id}`, body, { entity: 'event', op: 'update' });
         snackbar('Event updated', 'success');
@@ -141,8 +161,7 @@ export default function Events() {
                 <StatusBadge status={eventStatus(e)} />
               </div>
               <p className="muted mt-8">
-                {e.event_date ? fmtDate(e.event_date) : e.day_of_week || ''}
-                {e.end_date ? ` \u2013 ${fmtDate(e.end_date)}` : ''}
+                {fmtEventWhen(e)}
                 {e.location ? ` \u2022 ${e.location}` : ''}
                 {e.is_recurring ? ' \u2022 Recurring' : ''}
               </p>
@@ -191,33 +210,49 @@ export default function Events() {
             <label>Description</label>
             <textarea value={form.description} onChange={(e) => set('description', e.target.value)} />
           </div>
-          <div className="form-row">
-            <div className="field">
-              <label>Event date</label>
-              <input type="date" value={form.event_date} onChange={(e) => set('event_date', e.target.value)} required={!form.is_recurring} />
-            </div>
-            <div className="field">
-              <label>End date (multi-day)</label>
-              <input type="date" value={form.end_date} onChange={(e) => set('end_date', e.target.value)} />
-            </div>
-          </div>
-          <div className="field">
-            <label>Location</label>
-            <input value={form.location} onChange={(e) => set('location', e.target.value)} />
-          </div>
+
           <div className="form-row">
             <div className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <input type="checkbox" checked={form.is_recurring} onChange={(e) => set('is_recurring', e.target.checked)} id="recur" />
               <label htmlFor="recur" style={{ color: 'var(--text)' }}>Recurring event</label>
             </div>
-            <div className="field">
-              <label>Day of week</label>
-              <select value={form.day_of_week} onChange={(e) => set('day_of_week', e.target.value)} disabled={!form.is_recurring}>
-                {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d) => (
-                  <option key={d}>{d}</option>
-                ))}
-              </select>
+          </div>
+
+          {form.is_recurring ? (
+            <div className="form-row three">
+              <div className="field">
+                <label>Day of week</label>
+                <select value={form.day_of_week} onChange={(e) => set('day_of_week', e.target.value)}>
+                  {WEEKDAYS.map((d) => (
+                    <option key={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label>Start time</label>
+                <input type="time" value={form.start_time} onChange={(e) => set('start_time', e.target.value)} />
+              </div>
+              <div className="field">
+                <label>End time</label>
+                <input type="time" value={form.end_time} onChange={(e) => set('end_time', e.target.value)} />
+              </div>
             </div>
+          ) : (
+            <div className="form-row">
+              <div className="field">
+                <label>Start date &amp; time</label>
+                <input type="datetime-local" value={form.event_date} onChange={(e) => set('event_date', e.target.value)} required />
+              </div>
+              <div className="field">
+                <label>End date &amp; time (multi-day)</label>
+                <input type="datetime-local" value={form.end_date} onChange={(e) => set('end_date', e.target.value)} />
+              </div>
+            </div>
+          )}
+
+          <div className="field">
+            <label>Location</label>
+            <input value={form.location} onChange={(e) => set('location', e.target.value)} />
           </div>
         </form>
       </Modal>

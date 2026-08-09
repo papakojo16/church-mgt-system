@@ -3,6 +3,17 @@ from datetime import datetime
 from database import get_connection
 
 
+def _parse_time(value):
+    # "HH:MM" -> a datetime on the 2099 placeholder date, carrying only the time.
+    if not value:
+        return None
+    try:
+        parts = str(value).split(":")
+        return datetime(2099, 1, 1, int(parts[0]), int(parts[1]))
+    except (ValueError, IndexError):
+        return None
+
+
 def create_event(title, description, event_date, location, created_by, end_date=None, ministry_id=None):
     try:
         conn = get_connection()
@@ -31,16 +42,19 @@ def create_event(title, description, event_date, location, created_by, end_date=
         return None
 
 
-def create_recurring_event(title, description, day_of_week, location, created_by):
+def create_recurring_event(title, description, day_of_week, location, created_by, start_time=None, end_time=None):
     try:
         conn = get_connection()
         cur = conn.cursor()
         # Recurring events get a far-future placeholder date (2099-01-01) so the
         # normal upcoming-event queries include them; the real schedule is in
-        # recurrence_rule (e.g. the weekday name).
+        # recurrence_rule (e.g. the weekday name) plus the start/end times on the
+        # placeholder datetimes.
+        event_date = _parse_time(start_time) or datetime(2099, 1, 1)
+        end_date = _parse_time(end_time)
         cur.execute(
-            "INSERT INTO events (title, description, event_date, location, created_by, is_recurring, recurrence_rule) VALUES (%s,%s,%s,%s,%s,TRUE,%s)",
-            (title, description, datetime(2099, 1, 1), location, created_by, day_of_week),
+            "INSERT INTO events (title, description, event_date, end_date, location, created_by, is_recurring, recurrence_rule) VALUES (%s,%s,%s,%s,%s,%s,TRUE,%s)",
+            (title, description, event_date, end_date, location, created_by, day_of_week),
         )
         result = cur.lastrowid
         conn.close()
@@ -110,6 +124,14 @@ def update_event(event_id, **kwargs):
         # Whitelist columns so callers can't rewrite created_by/ministry_id.
         allowed = {"title", "description", "event_date", "end_date", "location", "is_recurring", "recurrence_rule"}
         fields = {k: v for k, v in kwargs.items() if k in allowed}
+        # The recurring edit form sends day_of_week + start/end times; map them
+        # onto the stored recurrence_rule and placeholder datetimes.
+        if "day_of_week" in kwargs:
+            fields["recurrence_rule"] = kwargs["day_of_week"]
+        if "start_time" in kwargs:
+            fields["event_date"] = _parse_time(kwargs["start_time"]) or datetime(2099, 1, 1)
+        if "end_time" in kwargs:
+            fields["end_date"] = _parse_time(kwargs["end_time"])
         if not fields:
             return
         set_clause = ", ".join(f"{k} = %s" for k in fields)
