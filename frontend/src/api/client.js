@@ -80,6 +80,9 @@ export async function request(method, path, body, opts = {}) {
 
   const cfg = { method, headers };
   if (body !== undefined && method !== 'GET') cfg.body = JSON.stringify(body);
+  // Callers may override the fetch cache mode (e.g. bypass the browser HTTP
+  // cache right after a mutation so newly-published content shows instantly).
+  if (opts.cache) cfg.cache = opts.cache;
 
   let res;
   try {
@@ -117,7 +120,7 @@ export async function request(method, path, body, opts = {}) {
 
 // HTTP helpers; mutating calls default to queueing (offline-first) unless opts.queue is false.
 export const api = {
-  get: (path) => request('GET', path, undefined),
+  get: (path, opts = {}) => request('GET', path, undefined, opts),
   post: (path, body, opts = {}) => request('POST', path, body, { queue: true, op: 'create', ...opts }),
   put: (path, body, opts = {}) => request('PUT', path, body, { queue: true, op: 'update', ...opts }),
   del: (path, opts = {}) => request('DELETE', path, undefined, { queue: true, op: 'delete', ...opts }),

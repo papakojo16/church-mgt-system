@@ -10,6 +10,7 @@ import ministries
 import service_details
 import receipts
 import activity_logs
+from .church_routes import invalidate_public_cache
 from auth import create_user, hash_password, update_user, delete_user
 from config import MIN_PASSWORD_LENGTH
 from deps import require
@@ -213,6 +214,10 @@ def sync(payload: dict, user: dict = Depends(require("admin", "pastor", "finance
     results = []
     success = 0
     failed = 0
+    # Entities whose replay changes the public landing/about payload, so the
+    # cached /api/public bundle must be rebuilt.
+    public_entities = {"announcement", "event", "ministry"}
+    public_touched = False
     for op in operations:
         try:
             result = _replay(op, user)
@@ -222,8 +227,12 @@ def sync(payload: dict, user: dict = Depends(require("admin", "pastor", "finance
                 results.append({"op": op.get("op"), "entity": op.get("entity"), "success": False, "error": "Unsupported operation"})
             else:
                 success += 1
+                if op.get("entity") in public_entities:
+                    public_touched = True
                 results.append({"op": op.get("op"), "entity": op.get("entity"), "success": True, "id": result})
         except Exception as e:
             failed += 1
             results.append({"op": op.get("op"), "entity": op.get("entity"), "success": False, "error": str(e)})
+    if public_touched:
+        invalidate_public_cache()
     return {"success": success, "failed": failed, "results": results}

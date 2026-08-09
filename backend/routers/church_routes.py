@@ -27,6 +27,15 @@ def _build_public_content():
     return data
 
 
+def invalidate_public_cache():
+    # Any change to the public-facing payload (church content, events,
+    # announcements, ministries) clears the cached bundle so /api/public
+    # reflects it immediately instead of waiting out the TTL.
+    with _public_lock:
+        _public_cache["data"] = None
+        _public_cache["at"] = 0.0
+
+
 def _warm_public_cache():
     # Pre-fill the cache at startup so the first visitor does not trigger a build.
     try:
@@ -80,6 +89,7 @@ def save_name(payload: dict, user: dict = Depends(require("admin"))):
         raise HTTPException(status_code=400, detail="Name is required")
     church_content.save_church_name(name)
     activity_logs.log_activity(user["id"], "updated", "Church", "Updated church name")
+    invalidate_public_cache()
     return {"message": "Saved"}
 
 
@@ -87,6 +97,7 @@ def save_name(payload: dict, user: dict = Depends(require("admin"))):
 def save_tagline(payload: dict, user: dict = Depends(require("admin"))):
     church_content.save_church_tagline(payload.get("value", ""))
     activity_logs.log_activity(user["id"], "updated", "Church", "Updated tagline")
+    invalidate_public_cache()
     return {"message": "Saved"}
 
 
@@ -98,6 +109,7 @@ def save_basics(payload: dict, user: dict = Depends(require("admin"))):
         raise HTTPException(status_code=400, detail="items is required")
     church_content.save_basics(items)
     activity_logs.log_activity(user["id"], "updated", "Church", "Updated about/mission/vision/values")
+    invalidate_public_cache()
     return {"message": "Saved"}
 
 
@@ -108,6 +120,7 @@ def save_organisations(payload: dict, user: dict = Depends(require("admin"))):
         raise HTTPException(status_code=400, detail="items is required")
     church_content.save_organisations(items)
     activity_logs.log_activity(user["id"], "updated", "Church", "Updated organisations")
+    invalidate_public_cache()
     return {"message": "Saved"}
 
 
@@ -118,6 +131,7 @@ def save_activities(payload: dict, user: dict = Depends(require("admin"))):
         raise HTTPException(status_code=400, detail="items is required")
     church_content.save_activities(items)
     activity_logs.log_activity(user["id"], "updated", "Church", "Updated activities")
+    invalidate_public_cache()
     return {"message": "Saved"}
 
 
@@ -126,6 +140,7 @@ def save_logo(payload: dict, user: dict = Depends(require("admin"))):
     # Logo stored as a base64 data URI string.
     church_content.save_church_logo(payload.get("value", ""))
     activity_logs.log_activity(user["id"], "updated", "Church", "Updated logo")
+    invalidate_public_cache()
     return {"message": "Saved"}
 
 
@@ -134,4 +149,5 @@ def save_social(payload: dict, user: dict = Depends(require("admin"))):
     # Social links stored as a key/value dict (e.g. facebook, twitter, youtube).
     church_content.save_social(payload.get("value", {}))
     activity_logs.log_activity(user["id"], "updated", "Church", "Updated social media links")
+    invalidate_public_cache()
     return {"message": "Saved"}

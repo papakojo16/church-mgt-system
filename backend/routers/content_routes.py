@@ -7,6 +7,7 @@ import events
 import ministries
 import service_details
 import activity_logs
+from .church_routes import invalidate_public_cache
 from deps import get_current_user, require
 
 router = APIRouter(prefix="/api", tags=["content"])
@@ -75,6 +76,7 @@ def create_announcement(payload: dict, user: dict = Depends(require(*WRITERS))):
         preacher=payload.get("preacher"),
     )
     activity_logs.log_activity(user["id"], "created", "Announcements", title)
+    invalidate_public_cache()
     return {"id": ann_id}
 
 
@@ -82,6 +84,7 @@ def create_announcement(payload: dict, user: dict = Depends(require(*WRITERS))):
 def edit_announcement(announcement_id: int, payload: dict, user: dict = Depends(require(*WRITERS))):
     announcements.update_announcement(announcement_id, **payload)
     activity_logs.log_activity(user["id"], "updated", "Announcements", f"Announcement {announcement_id}")
+    invalidate_public_cache()
     return {"message": "Announcement updated"}
 
 
@@ -89,6 +92,7 @@ def edit_announcement(announcement_id: int, payload: dict, user: dict = Depends(
 def remove_announcement(announcement_id: int, user: dict = Depends(require(*WRITERS))):
     announcements.delete_announcement(announcement_id)
     activity_logs.log_activity(user["id"], "deleted", "Announcements", f"Announcement {announcement_id}")
+    invalidate_public_cache()
     return {"message": "Announcement deleted"}
 
 
@@ -172,6 +176,7 @@ def create_event(payload: dict, user: dict = Depends(require(*WRITERS))):
             payload.get("event_date"), payload.get("location", ""), user["id"],
         )
     activity_logs.log_activity(user["id"], "created", "Events", title)
+    invalidate_public_cache()
     return {"id": event_id}
 
 
@@ -179,6 +184,7 @@ def create_event(payload: dict, user: dict = Depends(require(*WRITERS))):
 def edit_event(event_id: int, payload: dict, user: dict = Depends(require(*WRITERS))):
     events.update_event(event_id, **payload)
     activity_logs.log_activity(user["id"], "updated", "Events", f"Event {event_id}")
+    invalidate_public_cache()
     return {"message": "Event updated"}
 
 
@@ -186,6 +192,7 @@ def edit_event(event_id: int, payload: dict, user: dict = Depends(require(*WRITE
 def remove_event(event_id: int, user: dict = Depends(require(*WRITERS))):
     events.delete_event(event_id)
     activity_logs.log_activity(user["id"], "deleted", "Events", f"Event {event_id}")
+    invalidate_public_cache()
     return {"message": "Event deleted"}
 
 
@@ -263,6 +270,7 @@ def create_ministry(payload: dict, user: dict = Depends(require(*WRITERS))):
         roles=payload.get("roles") or ["Member"],
     )
     activity_logs.log_activity(user["id"], "created", "Organisations", name)
+    invalidate_public_cache()
     return {"id": ministry_id}
 
 
@@ -306,6 +314,7 @@ def edit_ministry(ministry_id: int, payload: dict, user: dict = Depends(require(
         roles=payload.get("roles"),
     )
     activity_logs.log_activity(user["id"], "updated", "Organisations", f"Ministry {ministry_id}")
+    invalidate_public_cache()
     return {"message": "Ministry updated"}
 
 
@@ -313,6 +322,7 @@ def edit_ministry(ministry_id: int, payload: dict, user: dict = Depends(require(
 def remove_ministry(ministry_id: int, user: dict = Depends(require(*WRITERS))):
     ministries.delete_ministry(ministry_id)
     activity_logs.log_activity(user["id"], "deleted", "Organisations", f"Ministry {ministry_id}")
+    invalidate_public_cache()
     return {"message": "Ministry deleted"}
 
 
@@ -337,6 +347,7 @@ def create_ministry_event(ministry_id: int, payload: dict, user: dict = Depends(
         end_date=payload.get("end_date"),
     )
     activity_logs.log_activity(user["id"], "created", "Organisation Events", title)
+    invalidate_public_cache()
     return {"id": event_id}
 
 
@@ -346,6 +357,7 @@ def edit_ministry_event(ministry_id: int, event_id: int, payload: dict, user: di
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     events.update_event(event_id, **payload)
     activity_logs.log_activity(user["id"], "updated", "Organisation Events", f"Event {event_id}")
+    invalidate_public_cache()
     return {"message": "Event updated"}
 
 
@@ -355,6 +367,7 @@ def remove_ministry_event(ministry_id: int, event_id: int, user: dict = Depends(
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     events.delete_event(event_id)
     activity_logs.log_activity(user["id"], "deleted", "Organisation Events", f"Event {event_id}")
+    invalidate_public_cache()
     return {"message": "Event deleted"}
 
 
@@ -378,6 +391,7 @@ def upload_ministry_picture(ministry_id: int, payload: dict, user: dict = Depend
         ministry_id, image, (payload.get("caption") or "").strip(), user["id"],
     )
     activity_logs.log_activity(user["id"], "created", "Organisation Pictures", f"Uploaded picture {picture_id}")
+    invalidate_public_cache()
     return {"id": picture_id}
 
 
@@ -387,6 +401,7 @@ def remove_ministry_picture(ministry_id: int, picture_id: int, user: dict = Depe
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     ministries.delete_ministry_picture(picture_id)
     activity_logs.log_activity(user["id"], "deleted", "Organisation Pictures", f"Picture {picture_id}")
+    invalidate_public_cache()
     return {"message": "Picture deleted"}
 
 
