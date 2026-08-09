@@ -20,6 +20,25 @@ function notifyPending() {
   getPendingCount().then((n) => listeners.forEach((fn) => fn(n)));
 }
 
+// Modules holding cached server data (e.g. the public landing content) register
+// a reset callback so a successful mutation invalidates their cache.
+const cacheInvalidators = new Set();
+
+export function onContentMutated(fn) {
+  cacheInvalidators.add(fn);
+  return () => cacheInvalidators.delete(fn);
+}
+
+function invalidateCaches() {
+  cacheInvalidators.forEach((fn) => {
+    try {
+      fn();
+    } catch {
+      // A failing invalidator must never break the request that triggered it.
+    }
+  });
+}
+
 // Auth token lives in localStorage so it survives reloads.
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY) || '';
@@ -90,6 +109,9 @@ export async function request(method, path, body, opts = {}) {
     const msg = (data && (data.detail || data.error)) || res.statusText || `Error ${res.status}`;
     throw new ApiError(res.status, msg);
   }
+  // A successful mutation changes server state, so any cached data (e.g. the
+  // public church content reused by the About pages) is now stale.
+  if (WRITE_METHODS.has(method)) invalidateCaches();
   return data;
 }
 

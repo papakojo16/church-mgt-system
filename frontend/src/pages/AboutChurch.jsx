@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
-import { api } from '../api/client.js';
+import { getPublicData } from '../api/publicData.js';
 import { fmtDate, fmtEventWhen, SocialLinks } from '../ui/Shared.jsx';
 import { useReveal } from '../ui/hooks.jsx';
 import { Icon } from '../ui/icons.jsx';
@@ -26,10 +26,11 @@ export default function AboutChurch() {
   // Initial tab can be set by navigation state (e.g. when returning from a detail page).
   const [tab, setTab] = useState(() => location.state?.tab || 'about');
 
-  // Cache-busting query param (t) ensures a fresh copy of public content on every visit.
+  // Public content is already fetched and cached in memory by the landing page
+  // (getPublicData), so reusing it here makes the About tab render instantly
+  // instead of re-downloading the full payload (incl. base64 images) every visit.
   useEffect(() => {
-    api
-      .get(`/api/public?t=${Date.now()}`)
+    getPublicData()
       .then(setData)
       .catch(() => setData(null));
   }, []);

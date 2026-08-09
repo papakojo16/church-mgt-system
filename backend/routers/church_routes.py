@@ -2,6 +2,7 @@ import threading
 import time
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 
 import church_content
 import activity_logs
@@ -40,14 +41,18 @@ def public_content():
     # Public (no auth) church homepage content, cached for PUBLIC_CACHE_TTL.
     # The lock + double-check avoids stampede when the cache expires concurrently.
     now = time.time()
-    if _public_cache["data"] is not None and now - _public_cache["at"] <= PUBLIC_CACHE_TTL:
-        return _public_cache["data"]
-    with _public_lock:
-        now = time.time()
-        if _public_cache["data"] is None or now - _public_cache["at"] > PUBLIC_CACHE_TTL:
-            _public_cache["data"] = _build_public_content()
-            _public_cache["at"] = time.time()
-    return _public_cache["data"]
+    if _public_cache["data"] is None or now - _public_cache["at"] > PUBLIC_CACHE_TTL:
+        with _public_lock:
+            now = time.time()
+            if _public_cache["data"] is None or now - _public_cache["at"] > PUBLIC_CACHE_TTL:
+                _public_cache["data"] = _build_public_content()
+                _public_cache["at"] = time.time()
+    # max-age matches PUBLIC_CACHE_TTL so browsers reuse the copy on repeat
+    # navigations (About page) instead of re-downloading it every visit.
+    return JSONResponse(
+        content=_public_cache["data"],
+        headers={"Cache-Control": f"public, max-age={int(PUBLIC_CACHE_TTL)}"},
+    )
 
 
 _warm_public_cache()

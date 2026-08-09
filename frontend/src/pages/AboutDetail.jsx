@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
-import { api } from '../api/client.js';
+import { getPublicData } from '../api/publicData.js';
 import { useReveal } from '../ui/hooks.jsx';
 import { SocialLinks, Confirm, fmtEventWhen } from '../ui/Shared.jsx';
 import { Icon } from '../ui/icons.jsx';
@@ -43,8 +43,7 @@ export default function AboutDetail({ kind }) {
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    api
-      .get(`/api/public?t=${Date.now()}`)
+    getPublicData()
       .then((d) => alive && setData(d))
       .catch(() => alive && setData(null))
       .finally(() => alive && setLoading(false));
