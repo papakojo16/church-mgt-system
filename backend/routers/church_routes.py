@@ -2,6 +2,7 @@ import threading
 import time
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 import church_content
@@ -58,8 +59,10 @@ def public_content():
                 _public_cache["at"] = time.time()
     # max-age matches PUBLIC_CACHE_TTL so browsers reuse the copy on repeat
     # navigations (About page) instead of re-downloading it every visit.
+    # jsonable_encoder is required: the cached bundle contains raw DB rows whose
+    # DATETIME columns are datetime objects, which plain JSON serialization rejects.
     return JSONResponse(
-        content=_public_cache["data"],
+        content=jsonable_encoder(_public_cache["data"]),
         headers={"Cache-Control": f"public, max-age={int(PUBLIC_CACHE_TTL)}"},
     )
 
