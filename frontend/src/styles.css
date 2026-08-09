@@ -709,6 +709,29 @@ table.data tbody tr:hover {
   color: #546e7a;
 }
 
+/* Activity log action badges. */
+.tag.created {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.tag.updated,
+.tag.joined,
+.tag.left {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.tag.deleted {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.tag.registered {
+  background: #f3e5f5;
+  color: #6a1b9a;
+}
+
 /* ---------- Modal ---------- */
 .modal-overlay {
   position: fixed;

@@ -20,6 +20,7 @@ import Ministries from './pages/Ministries.jsx';
 import Receipts from './pages/Receipts.jsx';
 import Reports from './pages/Reports.jsx';
 import Statistics from './pages/Statistics.jsx';
+import ActivityLogs from './pages/ActivityLogs.jsx';
 import Calculator from './pages/Calculator.jsx';
 import Profile from './pages/Profile.jsx';
 import ChurchProfile from './pages/ChurchProfile.jsx';
@@ -41,6 +42,7 @@ const NAV = [
   { to: '/receipts', label: 'Receipts', icon: 'file-text', roles: ALL },
   { to: '/reports', label: 'Reports', icon: 'clipboard', roles: STAFF },
   { to: '/statistics', label: 'Statistics', icon: 'bar-chart-2', roles: ALL },
+  { to: '/activity-logs', label: 'Activity Logs', icon: 'activity', roles: ['admin'] },
   { to: '/calculator', label: 'Calculator', icon: 'hash', roles: ['admin', 'finance'] },
   { to: '/about-church', label: 'About Church', icon: 'book-open', roles: ALL },
   { to: '/church', label: 'Church Profile', icon: 'tool', roles: ['admin'] },
@@ -156,6 +158,7 @@ function Shell({ children }) {
     receipts: 'Receipts',
     reports: 'Reports',
     statistics: 'Statistics',
+    'activity-logs': 'Activity Logs',
     calculator: 'Calculator',
     church: 'Church Profile',
     profile: 'My Profile',
@@ -398,6 +401,16 @@ export default function App() {
               <Statistics />
             </Shell>
           </Protected>
+        }
+      />
+      <Route
+        path="/activity-logs"
+        element={
+          <RequireRole roles={['admin']}>
+            <Shell>
+              <ActivityLogs />
+            </Shell>
+          </RequireRole>
         }
       />
       <Route
