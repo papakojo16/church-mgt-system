@@ -364,7 +364,10 @@ def create_ministry_event(ministry_id: int, payload: dict, user: dict = Depends(
 def edit_ministry_event(ministry_id: int, event_id: int, payload: dict, user: dict = Depends(require(*ALL_LOGGED))):
     if not _can_manage_ministry(user, ministry_id):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
-    events.update_event(event_id, **payload)
+    update = dict(payload)
+    if update.get("image"):
+        update["image"] = _validate_image(update["image"])
+    events.update_event(event_id, **update)
     activity_logs.log_activity(user["id"], "updated", "Organisation Events", f"Event {event_id}")
     invalidate_public_cache()
     return {"message": "Event updated"}

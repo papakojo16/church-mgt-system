@@ -1884,6 +1884,16 @@ label.upload-btn {
   align-items: center;
   gap: 6px;
 }
+/* Small thumbnail for fliers inside ministry event rows. */
+.event-row .ev-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  float: left;
+  margin: 0 10px 4px 0;
+}
 .ab-view {
   display: inline-flex;
   align-items: center;

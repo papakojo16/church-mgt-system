@@ -523,6 +523,7 @@ function EventRow({ event, canEdit, onEdit, onDelete }) {
         <span className="month">{dp.month}</span>
       </div>
       <div className="body">
+        {event.image && <img className="ev-thumb" src={event.image} alt={`${event.title} flier`} />}
         <div className="title">{event.title}</div>
         <div className="meta">
           <span><Icon name="clock" size={13} /> {dp.when}</span>
@@ -550,11 +551,27 @@ function EventFormModal({ ministry, mode, event, onClose, onSaved, snackbar }) {
     description: event?.description || '',
     event_date: toInputValue(event?.event_date) || '',
     location: event?.location || '',
+    image: event?.image || '',
   });
   const [busy, setBusy] = useState(false);
 
   function set(k, v) {
     setForm((f) => ({ ...f, [k]: v }));
+  }
+
+  // Turn a selected file into a resized data-URL preview; errors surface in the snackbar.
+  async function pickFlier(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      snackbar('Please choose an image file', 'error');
+      return;
+    }
+    try {
+      const dataUrl = await resizeImage(file);
+      set('image', dataUrl);
+    } catch {
+      snackbar('Could not read that image', 'error');
+    }
   }
 
   async function save(e) {
@@ -566,6 +583,7 @@ function EventFormModal({ ministry, mode, event, onClose, onSaved, snackbar }) {
         description: form.description,
         event_date: form.event_date,
         location: form.location,
+        image: form.image,
       };
       if (mode === 'edit' && event) {
         await api.put(`/api/ministries/${ministry.id}/events/${event.id}`, body, { entity: 'ministry', op: 'update_event' });
@@ -612,6 +630,28 @@ function EventFormModal({ ministry, mode, event, onClose, onSaved, snackbar }) {
         <div className="field">
           <label>Description</label>
           <textarea value={form.description} onChange={(e) => set('description', e.target.value)} />
+        </div>
+        <div className="field">
+          <label>Event flier (image)</label>
+          {form.image ? (
+            <div className="ev-flier-preview">
+              <img src={form.image} alt="Event flier" />
+              <div className="row mt-8">
+                <button type="button" className="btn small secondary" onClick={() => set('image', '')}>
+                  Remove image
+                </button>
+                <label className="btn small primary" style={{ marginLeft: 8 }}>
+                  Change image
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => pickFlier(e.target.files[0])} />
+                </label>
+              </div>
+            </div>
+          ) : (
+            <label className="btn secondary upload-btn">
+              <Icon name="upload-cloud" size={16} /> Choose image
+              <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => pickFlier(e.target.files[0])} />
+            </label>
+          )}
         </div>
       </form>
     </Modal>
