@@ -14,7 +14,7 @@ def _parse_time(value):
         return None
 
 
-def create_event(title, description, event_date, location, created_by, end_date=None, ministry_id=None):
+def create_event(title, description, event_date, location, created_by, end_date=None, ministry_id=None, image=None):
     try:
         conn = get_connection()
         cur = conn.cursor()
@@ -22,18 +22,18 @@ def create_event(title, description, event_date, location, created_by, end_date=
         # aren't written where the caller didn't intend them.
         if ministry_id:
             cur.execute(
-                "INSERT INTO events (title, description, event_date, end_date, location, created_by, ministry_id) VALUES (%s,%s,%s,%s,%s,%s,%s)",
-                (title, description, event_date, end_date, location, created_by, ministry_id),
+                "INSERT INTO events (title, description, event_date, end_date, location, image, created_by, ministry_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                (title, description, event_date, end_date, location, image, created_by, ministry_id),
             )
         elif end_date:
             cur.execute(
-                "INSERT INTO events (title, description, event_date, end_date, location, created_by) VALUES (%s,%s,%s,%s,%s,%s)",
-                (title, description, event_date, end_date, location, created_by),
+                "INSERT INTO events (title, description, event_date, end_date, location, image, created_by) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                (title, description, event_date, end_date, location, image, created_by),
             )
         else:
             cur.execute(
-                "INSERT INTO events (title, description, event_date, location, created_by) VALUES (%s,%s,%s,%s,%s)",
-                (title, description, event_date, location, created_by),
+                "INSERT INTO events (title, description, event_date, location, image, created_by) VALUES (%s,%s,%s,%s,%s,%s)",
+                (title, description, event_date, location, image, created_by),
             )
         result = cur.lastrowid
         conn.close()
@@ -42,7 +42,7 @@ def create_event(title, description, event_date, location, created_by, end_date=
         return None
 
 
-def create_recurring_event(title, description, day_of_week, location, created_by, start_time=None, end_time=None):
+def create_recurring_event(title, description, day_of_week, location, created_by, start_time=None, end_time=None, image=None):
     try:
         conn = get_connection()
         cur = conn.cursor()
@@ -53,8 +53,8 @@ def create_recurring_event(title, description, day_of_week, location, created_by
         event_date = _parse_time(start_time) or datetime(2099, 1, 1)
         end_date = _parse_time(end_time)
         cur.execute(
-            "INSERT INTO events (title, description, event_date, end_date, location, created_by, is_recurring, recurrence_rule) VALUES (%s,%s,%s,%s,%s,%s,TRUE,%s)",
-            (title, description, event_date, end_date, location, created_by, day_of_week),
+            "INSERT INTO events (title, description, event_date, end_date, location, image, created_by, is_recurring, recurrence_rule) VALUES (%s,%s,%s,%s,%s,%s,%s,TRUE,%s)",
+            (title, description, event_date, end_date, location, image, created_by, day_of_week),
         )
         result = cur.lastrowid
         conn.close()
@@ -63,14 +63,14 @@ def create_recurring_event(title, description, day_of_week, location, created_by
         return None
 
 
-def create_multi_day_event(title, description, start_date, end_date, location, created_by):
+def create_multi_day_event(title, description, start_date, end_date, location, created_by, image=None):
     # One event spanning several days; end_date marks the final day.
     try:
         conn = get_connection()
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO events (title, description, event_date, end_date, location, created_by) VALUES (%s,%s,%s,%s,%s,%s)",
-            (title, description, start_date, end_date, location, created_by),
+            "INSERT INTO events (title, description, event_date, end_date, location, image, created_by) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+            (title, description, start_date, end_date, location, image, created_by),
         )
         result = cur.lastrowid
         conn.close()
@@ -122,7 +122,7 @@ def update_event(event_id, **kwargs):
         conn = get_connection()
         cur = conn.cursor()
         # Whitelist columns so callers can't rewrite created_by/ministry_id.
-        allowed = {"title", "description", "event_date", "end_date", "location", "is_recurring", "recurrence_rule"}
+        allowed = {"title", "description", "event_date", "end_date", "location", "image", "is_recurring", "recurrence_rule"}
         fields = {k: v for k, v in kwargs.items() if k in allowed}
         # The recurring edit form sends day_of_week + start/end times; map them
         # onto the stored recurrence_rule and placeholder datetimes.

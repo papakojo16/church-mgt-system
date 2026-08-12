@@ -85,11 +85,12 @@ def _replay(op, user):
                     p.get("day_of_week", "Sunday"), p.get("location", ""),
                     p.get("created_by", user_id),
                     start_time=p.get("start_time"), end_time=p.get("end_time"),
+                    image=p.get("image"),
                 )
             return events.create_event(
                 p.get("title", ""), p.get("description", ""),
                 p.get("event_date"), p.get("location", ""), p.get("created_by", user_id),
-                end_date=p.get("end_date"),
+                end_date=p.get("end_date"), image=p.get("image"),
             )
         if operation == "update":
             events.update_event(p["id"], **{k: v for k, v in p.items() if k != "id"})

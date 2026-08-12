@@ -195,7 +195,7 @@ function ActivitiesPanel({ data, onOpen }) {
   );
 }
 
-// Public read-only list of upcoming events.
+// Public read-only list of upcoming events with their fliers.
 function EventsPanel({ data }) {
   const events = data?.upcoming_events || [];
   if (!events.length) return <p className="muted center">No upcoming events at the moment.</p>;
@@ -203,6 +203,7 @@ function EventsPanel({ data }) {
     <div className="grid two">
       {events.map((e) => (
         <div className="ab-item" key={e.id}>
+          {e.image && <img className="ab-flier" src={e.image} alt={`${e.title} flier`} />}
           <div className="ab-sub">{fmtEventWhen(e)}</div>
           <h3>{e.title}</h3>
           {e.location && (

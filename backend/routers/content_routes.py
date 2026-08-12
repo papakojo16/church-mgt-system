@@ -155,6 +155,8 @@ def create_event(payload: dict, user: dict = Depends(require(*WRITERS))):
         raise HTTPException(status_code=400, detail="Title is required")
     if not payload.get("is_recurring") and not payload.get("event_date"):
         raise HTTPException(status_code=400, detail="Event date is required for non-recurring events")
+    # Optional event flier: validated as an image (type, size, magic bytes).
+    image = _validate_image(payload["image"]) if payload.get("image") else None
     # Route to the matching event model: recurring, multi-day, or single event.
     if payload.get("is_recurring"):
         event_id = events.create_recurring_event(
@@ -163,17 +165,20 @@ def create_event(payload: dict, user: dict = Depends(require(*WRITERS))):
             payload.get("location", ""), user["id"],
             start_time=payload.get("start_time"),
             end_time=payload.get("end_time"),
+            image=image,
         )
     elif payload.get("end_date"):
         event_id = events.create_multi_day_event(
             title, payload.get("description", ""),
             payload.get("event_date"), payload.get("end_date"),
             payload.get("location", ""), user["id"],
+            image=image,
         )
     else:
         event_id = events.create_event(
             title, payload.get("description", ""),
             payload.get("event_date"), payload.get("location", ""), user["id"],
+            image=image,
         )
     activity_logs.log_activity(user["id"], "created", "Events", title)
     invalidate_public_cache()
@@ -182,7 +187,10 @@ def create_event(payload: dict, user: dict = Depends(require(*WRITERS))):
 
 @router.put("/events/{event_id}")
 def edit_event(event_id: int, payload: dict, user: dict = Depends(require(*WRITERS))):
-    events.update_event(event_id, **payload)
+    update = dict(payload)
+    if update.get("image"):
+        update["image"] = _validate_image(update["image"])
+    events.update_event(event_id, **update)
     activity_logs.log_activity(user["id"], "updated", "Events", f"Event {event_id}")
     invalidate_public_cache()
     return {"message": "Event updated"}
@@ -341,10 +349,11 @@ def create_ministry_event(ministry_id: int, payload: dict, user: dict = Depends(
     title = (payload.get("title") or "").strip()
     if not title or not payload.get("event_date"):
         raise HTTPException(status_code=400, detail="Title and event date are required")
+    image = _validate_image(payload["image"]) if payload.get("image") else None
     event_id = ministries.create_ministry_event(
         ministry_id, title, payload.get("description", ""),
         payload.get("event_date"), payload.get("location", ""), user["id"],
-        end_date=payload.get("end_date"),
+        end_date=payload.get("end_date"), image=image,
     )
     activity_logs.log_activity(user["id"], "created", "Organisation Events", title)
     invalidate_public_cache()

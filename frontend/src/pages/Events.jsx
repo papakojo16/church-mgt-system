@@ -7,6 +7,47 @@ import { Icon } from '../ui/icons.jsx';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+// Reads an image file and returns a resized JPEG data-URL to keep uploads small
+// (mirrors the helper used by the logo/picture uploaders elsewhere in the app).
+function resizeImage(file, maxSize = 1280, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      const timer = setTimeout(() => {
+        img.onload = null;
+        img.onerror = null;
+        reject(new Error('decode-timeout'));
+      }, 10000);
+      img.onload = () => {
+        clearTimeout(timer);
+        if (!img.naturalWidth) {
+          reject(new Error('decode-failed'));
+          return;
+        }
+        let { width, height } = img;
+        const scale = Math.min(1, maxSize / Math.max(width, height));
+        if (scale < 1) {
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => {
+        clearTimeout(timer);
+        reject(new Error('decode-failed'));
+      };
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 // Derive a display status for an event by comparing its start/end times against now;
 // a one-off event turns "past" once 30 minutes after its end time have elapsed.
 function eventStatus(e) {
@@ -61,7 +102,7 @@ export default function Events() {
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [attendanceFor, setAttendanceFor] = useState(null);
-  const [form, setForm] = useState({ title: '', description: '', event_date: '', end_date: '', location: '', is_recurring: false, day_of_week: 'Sunday', start_time: '', end_time: '' });
+  const [form, setForm] = useState({ title: '', description: '', event_date: '', end_date: '', location: '', image: '', is_recurring: false, day_of_week: 'Sunday', start_time: '', end_time: '' });
   const [busy, setBusy] = useState(false);
 
   function set(k, v) {
@@ -70,7 +111,7 @@ export default function Events() {
 
   function openAdd() {
     setEditing(null);
-    setForm({ title: '', description: '', event_date: '', end_date: '', location: '', is_recurring: false, day_of_week: 'Sunday', start_time: '', end_time: '' });
+    setForm({ title: '', description: '', event_date: '', end_date: '', location: '', image: '', is_recurring: false, day_of_week: 'Sunday', start_time: '', end_time: '' });
     setFormOpen(true);
   }
 
@@ -82,6 +123,7 @@ export default function Events() {
       event_date: toInputValue(toDate(e.event_date)),
       end_date: toInputValue(toDate(e.end_date)),
       location: e.location || '',
+      image: e.image || '',
       is_recurring: !!e.is_recurring,
       day_of_week: e.recurrence_rule || e.day_of_week || 'Sunday',
       start_time: timeValue(toDate(e.event_date)),
@@ -90,13 +132,28 @@ export default function Events() {
     setFormOpen(true);
   }
 
+  // Turn a selected file into a resized data-URL preview; errors surface in the snackbar.
+  async function pickFlier(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      snackbar('Please choose an image file', 'error');
+      return;
+    }
+    try {
+      const dataUrl = await resizeImage(file);
+      set('image', dataUrl);
+    } catch {
+      snackbar('Could not read that image', 'error');
+    }
+  }
+
   async function save(e) {
     e.preventDefault();
     setBusy(true);
     try {
       // Recurring events carry their schedule as weekday + times; one-off events
       // carry full datetimes (optionally an end date for multi-day events).
-      const body = { title: form.title, description: form.description, location: form.location, is_recurring: form.is_recurring };
+      const body = { title: form.title, description: form.description, location: form.location, is_recurring: form.is_recurring, image: form.image };
       if (form.is_recurring) {
         body.day_of_week = form.day_of_week;
         if (form.start_time) body.start_time = form.start_time;
@@ -156,6 +213,7 @@ export default function Events() {
         <div className="grid two">
           {list.map((e) => (
             <div className="card" key={e.id}>
+              {e.image && <img className="ev-flier" src={e.image} alt={`${e.title} flier`} />}
               <div className="row between">
                 <h3 style={{ marginBottom: 0 }}>{e.title}</h3>
                 <StatusBadge status={eventStatus(e)} />
@@ -253,6 +311,29 @@ export default function Events() {
           <div className="field">
             <label>Location</label>
             <input value={form.location} onChange={(e) => set('location', e.target.value)} />
+          </div>
+
+          <div className="field">
+            <label>Event flier (image)</label>
+            {form.image ? (
+              <div className="ev-flier-preview">
+                <img src={form.image} alt="Event flier" />
+                <div className="row mt-8">
+                  <button type="button" className="btn small secondary" onClick={() => set('image', '')}>
+                    Remove image
+                  </button>
+                  <label className="btn small primary" style={{ marginLeft: 8 }}>
+                    Change image
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => pickFlier(e.target.files[0])} />
+                  </label>
+                </div>
+              </div>
+            ) : (
+              <label className="btn secondary upload-btn">
+                <Icon name="upload-cloud" size={16} /> Choose image
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => pickFlier(e.target.files[0])} />
+              </label>
+            )}
           </div>
         </form>
       </Modal>

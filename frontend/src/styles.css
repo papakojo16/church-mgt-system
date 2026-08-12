@@ -1854,6 +1854,36 @@ button.ab-item:focus-visible {
   outline: 2px solid var(--theme-highlight);
   outline-offset: 2px;
 }
+/* Event flier images: full-bleed across the card top (About page + admin events). */
+.ab-item .ab-flier {
+  width: calc(100% + 44px);
+  margin: -22px -22px 14px -22px;
+  border-radius: 15px 15px 0 0;
+  max-height: 280px;
+  object-fit: cover;
+  display: block;
+}
+.ev-flier {
+  width: calc(100% + 36px);
+  margin: -18px -18px 14px -18px;
+  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+  max-height: 240px;
+  object-fit: cover;
+  display: block;
+}
+.ev-flier-preview img {
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+label.upload-btn {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 .ab-view {
   display: inline-flex;
   align-items: center;

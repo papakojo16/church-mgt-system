@@ -344,6 +344,11 @@ def init_db():
         if not cur.fetchone():
             cur.execute("ALTER TABLE events ADD COLUMN ministry_id INT NULL AFTER created_by")
 
+        # Event flier image (base64 data URI), shown on the public Events page.
+        cur.execute("SHOW COLUMNS FROM events LIKE 'image'")
+        if not cur.fetchone():
+            cur.execute("ALTER TABLE events ADD COLUMN image LONGTEXT AFTER location")
+
         cur.execute("SHOW COLUMNS FROM announcements LIKE 'bible_reading'")
         if not cur.fetchone():
             cur.execute("ALTER TABLE announcements ADD COLUMN bible_reading TEXT AFTER content")

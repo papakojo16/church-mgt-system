@@ -272,12 +272,12 @@ def get_ministry_events(ministry_id):
         return []
 
 
-def create_ministry_event(ministry_id, title, description, event_date, location, created_by, end_date=None):
+def create_ministry_event(ministry_id, title, description, event_date, location, created_by, end_date=None, image=None):
     # Delegates to the shared event creation, binding the event to this ministry.
     from events import create_event
     return create_event(
         title, description, event_date, location, created_by,
-        end_date=end_date, ministry_id=ministry_id,
+        end_date=end_date, ministry_id=ministry_id, image=image,
     )
 
 
