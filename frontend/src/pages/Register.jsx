@@ -11,7 +11,7 @@ export default function Register() {
   const { register } = useAuth();
   const snackbar = useSnackbar();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ username: '', full_name: '', password: '', email: '', phone: '' });
+  const [form, setForm] = useState({ username: '', full_name: '', password: '', email: '', phone: '', consent: false });
   const [busy, setBusy] = useState(false);
 
   function set(k, v) {
@@ -24,10 +24,14 @@ export default function Register() {
       snackbar(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`, 'error');
       return;
     }
+    if (!form.consent) {
+      snackbar('You must accept the Privacy Policy to register.', 'error');
+      return;
+    }
     setBusy(true);
     try {
       // Force the member role on self-registration so users can never grant themselves staff privileges.
-      await register({ ...form, role: 'member' });
+      await register({ ...form, role: 'member', consent: true });
       snackbar('Account created. Welcome!', 'success');
       navigate('/dashboard');
     } catch (err) {
@@ -66,6 +70,20 @@ export default function Register() {
             <label>Phone (optional)</label>
             <input value={form.phone} onChange={(e) => set('phone', e.target.value)} />
           </div>
+          <label className="consent-row">
+            <input
+              type="checkbox"
+              checked={form.consent}
+              onChange={(e) => set('consent', e.target.checked)}
+            />
+            <span>
+              I have read and agree to the{' '}
+              <button type="button" className="auth-link" onClick={() => navigate('/privacy')}>
+                Privacy Policy
+              </button>
+              .
+            </span>
+          </label>
           <button className="btn primary" style={{ width: '100%' }} disabled={busy}>
             {busy ? 'Creating account\u2026' : 'Create account'}
           </button>

@@ -10,6 +10,7 @@ import AboutChurch from './pages/AboutChurch.jsx';
 import AboutDetail from './pages/AboutDetail.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import Privacy from './pages/Privacy.jsx';
 import ForcePasswordChange from './pages/ForcePasswordChange.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Members from './pages/Members.jsx';
@@ -312,6 +313,7 @@ export default function App() {
       <Route path="/about-church/basic/:slug" element={<AboutDetail kind="basic" />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route path="/force-password" element={<ForcePasswordChange />} />
       <Route
         path="/dashboard"

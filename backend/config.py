@@ -21,6 +21,11 @@ APP_VERSION = "2.0.0"
 WEB_HOST = os.getenv("WEB_HOST", "0.0.0.0").strip()
 WEB_PORT = int(os.getenv("WEB_PORT", "8080").strip())
 
+# CORS: explicit list of allowed browser origins. Never use "*" together with
+# credentials. Comma-separated in CORS_ORIGINS; defaults to local dev origins.
+_CORS_RAW = os.getenv("CORS_ORIGINS", "http://localhost:*,http://127.0.0.1:*")
+CORS_ORIGINS = [o.strip() for o in _CORS_RAW.split(",") if o.strip()]
+
 JWT_SECRET = os.getenv("JWT_SECRET").strip() if os.getenv("JWT_SECRET") else None
 if not JWT_SECRET:
     # Fail fast on startup: signing tokens without a secret would be insecure.
@@ -29,6 +34,10 @@ if not JWT_SECRET:
         "(generate with: python -c \"import secrets; print(secrets.token_hex(32))\")."
     )
 JWT_ALGORITHM = "HS256"
-JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "1440").strip())  # 24h session lifetime
+# Access tokens are short-lived; refresh tokens live longer and can be rotated/revoked.
+JWT_ACCESS_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_EXPIRE_MINUTES", "15").strip())
+JWT_REFRESH_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_EXPIRE_DAYS", "7").strip())
+# Kept for backward compatibility with older deployments; retires in favour of the above.
+JWT_EXPIRE_MINUTES = JWT_ACCESS_EXPIRE_MINUTES
 
 MIN_PASSWORD_LENGTH = 8

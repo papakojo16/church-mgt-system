@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { api, getStoredUser, setToken, setStoredUser, syncPendingWrites, pendingCount, getToken, onPendingChange } from '../api/client.js';
+import { api, getStoredUser, setToken, setStoredUser, getRefreshToken, setRefreshToken, syncPendingWrites, pendingCount, getToken, onPendingChange } from '../api/client.js';
 import { applyThemeVars, getColorInfo, DEFAULT_COLOR } from '../theme/colors.js';
 import { useSnackbar } from '../ui/Shared.jsx';
 
@@ -84,6 +84,7 @@ export function AuthProvider({ children }) {
   async function login(username, password) {
     const data = await api.post('/api/auth/login', { username, password }, { queue: false });
     setToken(data.token);
+    setRefreshToken(data.refresh_token);
     setStoredUser(data.user);
     setUser(data.user);
     try {
@@ -101,14 +102,21 @@ export function AuthProvider({ children }) {
   async function register(payload) {
     const data = await api.post('/api/auth/register', payload, { queue: false });
     setToken(data.token);
+    setRefreshToken(data.refresh_token);
     setStoredUser(data.user);
     setUser(data.user);
     return data.user;
   }
 
-  // Logout: clear the stored token + user (keeps queued offline writes untouched).
+  // Logout: revoke the refresh token server-side (best-effort), then clear the
+  // stored token + user (keeps queued offline writes untouched).
   function logout() {
+    const rt = getRefreshToken();
+    if (rt) {
+      api.post('/api/auth/logout', { refresh_token: rt }, { queue: false }).catch(() => {});
+    }
     setToken('');
+    setRefreshToken('');
     setStoredUser(null);
     setUser(null);
   }

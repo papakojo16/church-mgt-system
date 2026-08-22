@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from config import APP_NAME, APP_VERSION, DB_HOST, DB_PORT, DB_NAME, WEB_HOST, WEB_PORT
+from config import APP_NAME, APP_VERSION, DB_HOST, DB_PORT, DB_NAME, WEB_HOST, WEB_PORT, CORS_ORIGINS
 from database import init_db, is_online
 from deps import get_current_user
 from routers import (
@@ -33,10 +33,11 @@ STATIC_DIR = BASE_DIR / "frontend" / "public"
 
 app = FastAPI(title=APP_NAME, version=APP_VERSION)
 
-# Permissive CORS so the separately-hosted frontend can call the API.
+# CORS restricted to the configured frontend origins. Using "*" with
+# allow_credentials=True is unsafe, so an explicit allow-list is required.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -61,13 +62,10 @@ def api_status():
 
 @app.get("/api/health")
 def api_health():
-    # Deployment diagnostic: reveals which DB the running function is actually
-    # configured with (no secrets) so connection issues are easy to trace.
+    # Deployment diagnostic: reports connectivity and version only. Database
+    # host/port/name are intentionally omitted to avoid disclosing internals.
     return {
         "online": is_online(),
-        "db_host": DB_HOST,
-        "db_port": DB_PORT,
-        "db_name": DB_NAME,
         "version": APP_VERSION,
     }
 

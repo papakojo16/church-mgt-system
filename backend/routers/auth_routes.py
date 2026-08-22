@@ -1,9 +1,12 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from auth import (
     authenticate_user,
     change_password,
-    create_token,
+    create_access_token,
+    create_refresh_token,
     create_user,
     get_user,
     get_user_by_id,
@@ -11,6 +14,9 @@ from auth import (
     get_member,
     hash_password,
     update_user,
+    rotate_refresh_token,
+    revoke_refresh_token,
+    revoke_user_refresh_tokens,
 )
 from config import MIN_PASSWORD_LENGTH
 from deps import get_current_user, require
@@ -53,10 +59,15 @@ def login(payload: dict, request: Request):
     if not user:
         raise HTTPException(status_code=401, detail="Invalid username or password")
     login_limiter.reset(client_ip(request))
-    # Return a JWT plus the safe (sensitive fields stripped) user record.
+    # Return short-lived access token + long-lived (rotating) refresh token,
+    # plus the safe (sensitive fields stripped) user record.
     safe = strip_sensitive(dict(user))
     safe["role_display"] = role_display_name(user["role"])
-    return {"token": create_token(user), "user": safe}
+    return {
+        "token": create_access_token(user),
+        "refresh_token": create_refresh_token(user),
+        "user": safe,
+    }
 
 
 @router.post("/register")
@@ -77,7 +88,13 @@ def register(payload: dict, request: Request):
     # request a higher role in the payload — force them to "member".
     if role not in SELF_REGISTER_ROLES:
         raise HTTPException(status_code=403, detail="Self-registration is limited to Member accounts.")
-    user_id = create_user(username, password, full_name, email=email, phone=phone, role=role)
+    # Consent to the privacy policy is mandatory to create an account.
+    if not bool(payload.get("consent")):
+        raise HTTPException(status_code=400, detail="You must accept the Privacy Policy to register.")
+    user_id = create_user(
+        username, password, full_name, email=email, phone=phone, role=role,
+        consent_given=True, consent_date=datetime.utcnow(),
+    )
     if not user_id:
         raise HTTPException(status_code=400, detail="Username already exists")
     activity_logs.log_activity(user_id, "registered", "Auth", f"Created new {role} account")
@@ -85,7 +102,11 @@ def register(payload: dict, request: Request):
     safe = strip_sensitive(dict(user))
     safe["role_display"] = role_display_name(user["role"])
     # Auto-login after registration: sign the token immediately and return it.
-    return {"token": create_token(user), "user": safe}
+    return {
+        "token": create_access_token(user),
+        "refresh_token": create_refresh_token(user),
+        "user": safe,
+    }
 
 
 @router.post("/create-staff")
@@ -166,5 +187,31 @@ def change_password_route(payload: dict, user: dict = Depends(get_current_user))
     ok, msg = change_password(user["id"], current_password, new_password)
     if not ok:
         raise HTTPException(status_code=400, detail=msg)
+    # Invalidate every session for this user so a stolen token can't linger.
+    revoke_user_refresh_tokens(user["id"])
     activity_logs.log_activity(user["id"], "updated", "Auth", "Changed password")
     return {"message": msg}
+
+
+@router.post("/refresh")
+def refresh(payload: dict):
+    # Exchange a valid refresh token for a fresh access+refresh pair (rotation).
+    # No auth dependency: the caller only has a refresh token at this point.
+    refresh_token = payload.get("refresh_token") or ""
+    if not refresh_token:
+        raise HTTPException(status_code=400, detail="refresh_token is required")
+    result = rotate_refresh_token(refresh_token)
+    if not result:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+    return result
+
+
+@router.post("/logout")
+def logout(payload: dict = None, user: dict = Depends(get_current_user)):
+    # Revoke the presented refresh token so the session can't be resumed. The
+    # access token is stateless and simply expires; clearing it is client-side.
+    if payload:
+        refresh_token = payload.get("refresh_token")
+        if refresh_token:
+            revoke_refresh_token(refresh_token)
+    return {"message": "Logged out"}

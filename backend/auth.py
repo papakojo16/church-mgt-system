@@ -1,9 +1,16 @@
 import bcrypt
 import jwt
+import hashlib
 from datetime import datetime, timedelta
 
 from database import get_connection
-from config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRE_MINUTES
+from config import (
+    JWT_SECRET,
+    JWT_ALGORITHM,
+    JWT_EXPIRE_MINUTES,
+    JWT_ACCESS_EXPIRE_MINUTES,
+    JWT_REFRESH_EXPIRE_DAYS,
+)
 
 
 def hash_password(password: str) -> str:
@@ -22,36 +29,126 @@ def verify_password(password: str, hashed: str) -> bool:
         return False
 
 
-def create_token(user):
-    # Stateless JWT: the server trusts the signed claims (id, username, role)
-    # until expiry, so no server-side session storage is needed.
+def create_token(user, token_type="access"):
+    # Stateless JWT. `typ` lets the server reject a refresh token used as an
+    # access token (or vice versa). Access tokens are short-lived; refresh
+    # tokens live longer and are tracked server-side for rotation/revocation.
+    if token_type == "refresh":
+        delta = timedelta(days=JWT_REFRESH_EXPIRE_DAYS)
+    else:
+        delta = timedelta(minutes=JWT_ACCESS_EXPIRE_MINUTES)
     payload = {
         "sub": str(user["id"]),
         "username": user["username"],
         "role": user["role"],
-        "exp": datetime.utcnow() + timedelta(minutes=JWT_EXPIRE_MINUTES),
+        "typ": token_type,
         "iat": datetime.utcnow(),
+        "exp": datetime.utcnow() + delta,
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
-def decode_token(token):
-    # Returns None on invalid signature or expiry; callers treat None as 401.
+def create_access_token(user):
+    return create_token(user, "access")
+
+
+def create_refresh_token(user):
+    # Mint a refresh JWT and persist its SHA-256 hash so it can be rotated or
+    # revoked (e.g. on logout or password change). The plaintext token is only
+    # ever returned to the client, never stored.
+    token = create_token(user, "refresh")
+    expires_at = datetime.utcnow() + timedelta(days=JWT_REFRESH_EXPIRE_DAYS)
     try:
-        return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (%s,%s,%s)",
+            (user["id"], _hash_token(token), expires_at),
+        )
+        conn.close()
+    except Exception:
+        pass
+    return token
+
+
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def decode_token(token, expected_type=None):
+    # Returns None on invalid signature, expiry, or a `typ` mismatch.
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
     except Exception:
         return None
+    if expected_type and payload.get("typ") != expected_type:
+        return None
+    return payload
 
 
-def create_user(username, password, full_name, email="", phone="", role="member", must_change_password=False):
+def rotate_refresh_token(refresh_token):
+    # Validate the presented refresh token, ensure its DB record is still valid,
+    # then revoke it and issue a brand-new access+refresh pair (rotation).
+    payload = decode_token(refresh_token, expected_type="refresh")
+    if not payload:
+        return None
+    token_hash = _hash_token(refresh_token)
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM refresh_tokens WHERE token_hash = %s", (token_hash,))
+        row = cur.fetchone()
+        if not row or row.get("revoked") or row.get("expires_at") < datetime.utcnow():
+            conn.close()
+            return None
+        # Revoke the used refresh token so it cannot be replayed.
+        cur.execute("UPDATE refresh_tokens SET revoked = TRUE WHERE id = %s", (row["id"],))
+        conn.close()
+    except Exception:
+        return None
+    user = get_user_by_id(payload.get("sub"))
+    if not user or not user.get("is_active"):
+        return None
+    return {
+        "token": create_access_token(user),
+        "refresh_token": create_refresh_token(user),
+    }
+
+
+def revoke_refresh_token(refresh_token):
+    # Revoke a single refresh token (e.g. on logout).
+    token_hash = _hash_token(refresh_token)
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("UPDATE refresh_tokens SET revoked = TRUE WHERE token_hash = %s", (token_hash,))
+        conn.close()
+    except Exception:
+        pass
+
+
+def revoke_user_refresh_tokens(user_id):
+    # Revoke every refresh token for a user (e.g. after a password change) so
+    # all existing sessions are force-logged-out.
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("UPDATE refresh_tokens SET revoked = TRUE WHERE user_id = %s", (user_id,))
+        conn.close()
+    except Exception:
+        pass
+
+
+def create_user(username, password, full_name, email="", phone="", role="member", must_change_password=False, consent_given=False, consent_date=None):
     try:
         conn = get_connection()
         cur = conn.cursor()
         # Password is hashed before storage; the plaintext is never persisted.
+        # consent_given/consent_date record the user's acceptance of the privacy policy.
         cur.execute(
-            "INSERT INTO users (username, password_hash, full_name, email, phone, role, must_change_password) "
-            "VALUES (%s,%s,%s,%s,%s,%s,%s)",
-            (username, hash_password(password), full_name, email, phone, role, bool(must_change_password)),
+            "INSERT INTO users (username, password_hash, full_name, email, phone, role, must_change_password, consent_given, consent_date) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            (username, hash_password(password), full_name, email, phone, role, bool(must_change_password), bool(consent_given), consent_date),
         )
         user_id = cur.lastrowid
         # Every user also gets a matching row in the members profile table;

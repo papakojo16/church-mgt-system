@@ -6,6 +6,7 @@ import {
 } from '../offline/db.js';
 
 const TOKEN_KEY = 'mtolivet_token';
+const REFRESH_TOKEN_KEY = 'mtolivet_refresh_token';
 const USER_KEY = 'mtolivet_user';
 
 // Subscribers (e.g. AuthContext) notified whenever the queued-write count changes.
@@ -47,6 +48,37 @@ export function getToken() {
 export function setToken(token) {
   if (token) localStorage.setItem(TOKEN_KEY, token);
   else localStorage.removeItem(TOKEN_KEY);
+}
+
+// Refresh tokens are stored alongside access tokens and used to obtain a new
+// access token when the current one expires (see the 401 handler below).
+export function getRefreshToken() {
+  return localStorage.getItem(REFRESH_TOKEN_KEY) || '';
+}
+
+export function setRefreshToken(token) {
+  if (token) localStorage.setItem(REFRESH_TOKEN_KEY, token);
+  else localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
+// A single in-flight refresh promise so concurrent 401s don't each rotate the
+// refresh token (which would invalidate the others and log the user out).
+let _refreshPromise = null;
+async function refreshSession() {
+  if (_refreshPromise) return _refreshPromise;
+  const rt = getRefreshToken();
+  if (!rt) throw new ApiError(401, 'Session expired. Please log in again.');
+  _refreshPromise = (async () => {
+    const refreshed = await request('POST', '/api/auth/refresh', { refresh_token: rt }, { queue: false, _refreshRetry: true });
+    setToken(refreshed.token);
+    setRefreshToken(refreshed.refresh_token);
+    return refreshed;
+  })();
+  try {
+    return await _refreshPromise;
+  } finally {
+    _refreshPromise = null;
+  }
 }
 
 // The logged-in user object is cached in localStorage and restored on startup.
@@ -109,6 +141,18 @@ export async function request(method, path, body, opts = {}) {
   }
 
   if (!res.ok) {
+    // On 401 (expired/invalid access token) try to refresh once and retry the
+    // original request. Skip this for auth endpoints and already-retried calls.
+    const isAuthPath = path === '/api/auth/refresh' || path === '/api/auth/login' || path === '/api/auth/register';
+    if (res.status === 401 && !opts._refreshRetry && !isAuthPath && getToken()) {
+      try {
+        await refreshSession();
+        return await request(method, path, body, { ...opts, _refreshRetry: true });
+      } catch {
+        setToken('');
+        setRefreshToken('');
+      }
+    }
     const msg = (data && (data.detail || data.error)) || res.statusText || `Error ${res.status}`;
     throw new ApiError(res.status, msg);
   }

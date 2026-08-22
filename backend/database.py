@@ -211,6 +211,28 @@ def init_db():
             pass
 
         try:
+            cur.execute("ALTER TABLE users ADD COLUMN consent_given BOOLEAN DEFAULT FALSE")
+        except Exception:
+            pass
+
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN consent_date DATETIME")
+        except Exception:
+            pass
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS refresh_tokens (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            token_hash CHAR(64) NOT NULL,
+            expires_at DATETIME NOT NULL,
+            revoked BOOLEAN DEFAULT FALSE,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        """)
+
+        try:
             cur.execute("ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT FALSE")
         except Exception:
             pass

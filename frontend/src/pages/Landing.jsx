@@ -201,6 +201,11 @@ export default function Landing() {
 
       <footer className="lp-footer">
         {'\u00A9'} {new Date().getFullYear()} {name}
+        <span className="footer-links">
+          <button className="auth-link" onClick={() => navigate('/privacy')}>
+            Privacy Policy
+          </button>
+        </span>
       </footer>
     </div>
   );
