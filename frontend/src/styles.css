@@ -2366,3 +2366,85 @@ label.upload-btn {
 .card {
   transition: border-color 0.2s ease;
 }
+
+/* ===== Privacy Policy page ===== */
+.privacy-page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+.privacy-page .mb-16 {
+  margin-bottom: 16px;
+}
+
+.privacy-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px 32px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.privacy-content h1 {
+  font-size: 26px;
+  margin: 0 0 18px;
+  color: var(--theme-dark);
+}
+
+.privacy-content h2 {
+  font-size: 19px;
+  margin: 28px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--theme-light);
+  color: var(--text);
+}
+
+.privacy-content h3 {
+  font-size: 15px;
+  margin: 18px 0 6px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.privacy-content p {
+  margin: 10px 0;
+}
+
+.privacy-content ul {
+  margin: 10px 0 10px 22px;
+  padding: 0;
+}
+
+.privacy-content li {
+  margin: 6px 0;
+}
+
+.privacy-content a {
+  color: var(--theme-medium);
+  text-decoration: underline;
+  word-break: break-word;
+}
+
+.privacy-content strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .privacy-page {
+    padding: 20px 12px 48px;
+  }
+  .privacy-content {
+    padding: 20px 18px;
+  }
+  .privacy-content h1 {
+    font-size: 22px;
+  }
+  .privacy-content h2 {
+    font-size: 17px;
+  }
+}
