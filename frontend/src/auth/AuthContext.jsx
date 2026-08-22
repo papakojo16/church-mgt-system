@@ -7,7 +7,7 @@ import {
   getPermission,
   isEnabled,
   wasPrompted,
-  promptEnableNotifications,
+  requestPermission,
   startWatcher,
   stopWatcher,
   disableNotifications,
@@ -29,6 +29,7 @@ export function AuthProvider({ children }) {
   const [notifPermission, setNotifPermission] = useState(() =>
     notificationsSupported() ? getPermission() : 'unsupported'
   );
+  const [notifPromptOpen, setNotifPromptOpen] = useState(false);
   const syncTimer = useRef(null);
 
   // Apply the chosen theme colors + dark flag to CSS variables and persist the selection.
@@ -99,20 +100,45 @@ export function AuthProvider({ children }) {
     setPending(await pendingCount());
   }
 
-  // Enable notifications: ask via an alert, request permission, and start the
-  // background watcher. Reports the outcome through a snackbar.
+  // Enable notifications: if already decided, act immediately; otherwise open the
+  // styled permission prompt (a Confirm modal) so the user can choose.
   function enableNotifications() {
-    promptEnableNotifications({
-      onResult: (r) => {
-        setNotifPermission(r);
-        if (r === 'granted') snackbar('Notifications enabled', 'success');
-        else if (r === 'denied') snackbar('Notifications are blocked in your browser settings', 'error');
-      },
+    if (!notificationsSupported()) {
+      snackbar('Notifications are not supported in this browser', 'error');
+      return;
+    }
+    const perm = getPermission();
+    if (perm === 'granted') {
+      localStorage.setItem('mtolivet_notif_enabled', 'true');
+      startWatcher();
+      snackbar('Notifications enabled', 'success');
+      return;
+    }
+    if (perm === 'denied') {
+      snackbar('Notifications are blocked in your browser settings', 'error');
+      return;
+    }
+    setNotifPromptOpen(true);
+  }
+
+  // User accepted the styled prompt: request permission and report the outcome.
+  function confirmEnableNotifications() {
+    setNotifPromptOpen(false);
+    requestPermission().then((res) => {
+      setNotifPermission(res);
+      if (res === 'granted') snackbar('Notifications enabled', 'success');
+      else if (res === 'denied') snackbar('Notifications are blocked in your browser settings', 'error');
     });
   }
 
+  // User dismissed the styled prompt: remember so we don't re-prompt automatically.
+  function dismissNotifPrompt() {
+    setNotifPromptOpen(false);
+    localStorage.setItem('mtolivet_notif_prompted', 'true');
+  }
+
   // Called after login (or when a session is restored): start the watcher if the
-  // user already allowed notifications, otherwise show the one-time enable alert.
+  // user already allowed notifications, otherwise show the one-time enable prompt.
   function setupNotifications() {
     if (!notificationsSupported()) return;
     const perm = getPermission();
@@ -120,7 +146,7 @@ export function AuthProvider({ children }) {
       if (isEnabled() || localStorage.getItem('mtolivet_notif_enabled') !== 'false') startWatcher();
     } else if (perm === 'default' && !wasPrompted()) {
       localStorage.setItem('mtolivet_notif_prompted', 'true');
-      enableNotifications();
+      setNotifPromptOpen(true);
     }
   }
 
@@ -209,6 +235,9 @@ export function AuthProvider({ children }) {
         logout,
         changePassword,
         enableNotifications,
+        confirmEnableNotifications,
+        dismissNotifPrompt,
+        notifPromptOpen,
         notifPermission,
         markPasswordChanged,
         doSync,

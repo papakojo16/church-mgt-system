@@ -317,7 +317,9 @@ export default function App() {
   React.useEffect(() => {
     splashShownOnce = true;
   }, []);
+  const { notifPromptOpen, confirmEnableNotifications, dismissNotifPrompt } = useAuth();
   return (
+    <>
     <Routes>
       <Route path="/" element={<LandingWithSplash />} />
       <Route path="/about-church" element={<AboutChurch />} />
@@ -470,5 +472,15 @@ export default function App() {
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    {notifPromptOpen && (
+      <Confirm
+        title="Enable notifications"
+        message="The app can alert you about new events and announcements even when you are not viewing the page. Enable notifications?"
+        yesLabel="Enable"
+        onYes={confirmEnableNotifications}
+        onNo={dismissNotifPrompt}
+      />
+    )}
+    </>
   );
 }

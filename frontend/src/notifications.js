@@ -139,38 +139,16 @@ export function disableNotifications() {
   stopWatcher();
 }
 
-// Ask the user (via an alert/confirm) to enable notifications, then request
-// permission. `onResult` receives 'granted' | 'denied' | 'dismissed' | 'unsupported'.
-export function promptEnableNotifications({ onResult } = {}) {
-  if (!notificationsSupported()) {
-    onResult && onResult('unsupported');
-    return;
-  }
-  const perm = Notification.permission;
-  if (perm === 'denied') {
-    onResult && onResult('denied');
-    return;
-  }
-  if (perm === 'granted') {
-    localStorage.setItem(ENABLED_KEY, 'true');
-    startWatcher();
-    onResult && onResult('granted');
-    return;
-  }
-  // default: use an alert to ask before requesting permission.
-  const ok = window.confirm(
-    'Enable notifications?\n\nThe app can alert you about new events and announcements even when you are not viewing the page.'
-  );
-  if (ok) {
-    Notification.requestPermission().then((res) => {
-      if (res === 'granted') {
-        localStorage.setItem(ENABLED_KEY, 'true');
-        startWatcher();
-      }
-      onResult && onResult(res);
-    });
-  } else {
-    localStorage.setItem(PROMPTED_KEY, 'true');
-    onResult && onResult('dismissed');
-  }
+// Request notification permission (must be triggered from a user gesture, e.g.
+// the "Enable" button in the styled prompt). On success the background watcher
+// starts and the preference is remembered.
+export function requestPermission() {
+  if (!notificationsSupported()) return Promise.resolve('unsupported');
+  return Notification.requestPermission().then((res) => {
+    if (res === 'granted') {
+      localStorage.setItem(ENABLED_KEY, 'true');
+      startWatcher();
+    }
+    return res;
+  });
 }
