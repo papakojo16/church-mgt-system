@@ -76,7 +76,7 @@ function RequireRole({ roles, children }) {
 
 // Top app bar: online/offline status, pending-change chip, sync + dark-mode buttons, user info.
 function AppBar({ title }) {
-  const { user, online, pending, syncing, darkMode, setDarkMode, doSync, logout, themeName, setThemeName } = useAuth();
+  const { user, online, pending, syncing, darkMode, setDarkMode, doSync, logout, themeName, setThemeName, enableNotifications, notifPermission } = useAuth();
   const navigate = useNavigate();
   const [confirmLogout, setConfirmLogout] = useState(false);
 
@@ -118,6 +118,19 @@ function AppBar({ title }) {
         </button>
         <button className="icon-btn" onClick={() => setDarkMode(!darkMode)} title={darkMode ? 'Light mode' : 'Dark mode'}>
           <Icon name={darkMode ? 'sun' : 'moon'} size={18} />
+        </button>
+        <button
+          className="icon-btn"
+          onClick={enableNotifications}
+          title={
+            notifPermission === 'granted'
+              ? 'Notifications enabled'
+              : notifPermission === 'denied'
+              ? 'Notifications blocked in browser settings'
+              : 'Enable notifications'
+          }
+        >
+          <Icon name={notifPermission === 'granted' ? 'bell' : 'bell-off'} size={18} />
         </button>
         {user && (
           <>

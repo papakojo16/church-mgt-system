@@ -2,6 +2,16 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { api, getStoredUser, setToken, setStoredUser, getRefreshToken, setRefreshToken, syncPendingWrites, pendingCount, getToken, onPendingChange } from '../api/client.js';
 import { applyThemeVars, getColorInfo, DEFAULT_COLOR } from '../theme/colors.js';
 import { useSnackbar } from '../ui/Shared.jsx';
+import {
+  notificationsSupported,
+  getPermission,
+  isEnabled,
+  wasPrompted,
+  promptEnableNotifications,
+  startWatcher,
+  stopWatcher,
+  disableNotifications,
+} from '../notifications.js';
 
 const AuthContext = createContext(null);
 
@@ -16,6 +26,9 @@ export function AuthProvider({ children }) {
   const [online, setOnline] = useState(navigator.onLine);
   const [pending, setPending] = useState(0);
   const [syncing, setSyncing] = useState(false);
+  const [notifPermission, setNotifPermission] = useState(() =>
+    notificationsSupported() ? getPermission() : 'unsupported'
+  );
   const syncTimer = useRef(null);
 
   // Apply the chosen theme colors + dark flag to CSS variables and persist the selection.
@@ -59,6 +72,12 @@ export function AuthProvider({ children }) {
   // Ref guard prevents overlapping syncs (e.g. from the interval and the Sync button).
   const syncingRef = useRef(false);
 
+  // On first load, set up notifications for a restored session.
+  useEffect(() => {
+    if (user) setupNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Push queued offline writes to the server, then refresh the pending counter.
   async function doSync() {
     if (!getToken() || syncingRef.current) return;
@@ -80,6 +99,31 @@ export function AuthProvider({ children }) {
     setPending(await pendingCount());
   }
 
+  // Enable notifications: ask via an alert, request permission, and start the
+  // background watcher. Reports the outcome through a snackbar.
+  function enableNotifications() {
+    promptEnableNotifications({
+      onResult: (r) => {
+        setNotifPermission(r);
+        if (r === 'granted') snackbar('Notifications enabled', 'success');
+        else if (r === 'denied') snackbar('Notifications are blocked in your browser settings', 'error');
+      },
+    });
+  }
+
+  // Called after login (or when a session is restored): start the watcher if the
+  // user already allowed notifications, otherwise show the one-time enable alert.
+  function setupNotifications() {
+    if (!notificationsSupported()) return;
+    const perm = getPermission();
+    if (perm === 'granted') {
+      if (isEnabled() || localStorage.getItem('mtolivet_notif_enabled') !== 'false') startWatcher();
+    } else if (perm === 'default' && !wasPrompted()) {
+      localStorage.setItem('mtolivet_notif_prompted', 'true');
+      enableNotifications();
+    }
+  }
+
   // Login: persist the returned token + user, then adopt the server default theme unless the user chose one.
   async function login(username, password) {
     const data = await api.post('/api/auth/login', { username, password }, { queue: false });
@@ -87,6 +131,7 @@ export function AuthProvider({ children }) {
     setRefreshToken(data.refresh_token);
     setStoredUser(data.user);
     setUser(data.user);
+    setupNotifications();
     try {
       const themeData = await api.get('/api/theme/colors');
       const defaultName = themeData.default;
@@ -105,6 +150,7 @@ export function AuthProvider({ children }) {
     setRefreshToken(data.refresh_token);
     setStoredUser(data.user);
     setUser(data.user);
+    setupNotifications();
     return data.user;
   }
 
@@ -115,6 +161,7 @@ export function AuthProvider({ children }) {
     if (rt) {
       api.post('/api/auth/logout', { refresh_token: rt }, { queue: false }).catch(() => {});
     }
+    stopWatcher();
     setToken('');
     setRefreshToken('');
     setStoredUser(null);
@@ -161,6 +208,8 @@ export function AuthProvider({ children }) {
         register,
         logout,
         changePassword,
+        enableNotifications,
+        notifPermission,
         markPasswordChanged,
         doSync,
         setDefaultTheme,

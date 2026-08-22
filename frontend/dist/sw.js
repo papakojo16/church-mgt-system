@@ -57,3 +57,43 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// Display a push notification (used when the app subscribes to web push). The
+// page can also trigger this directly via registration.showNotification().
+self.addEventListener('push', (event) => {
+  let data = { title: 'Mt. Olivet Methodist', body: '', url: '/' };
+  try {
+    if (event.data) data = Object.assign(data, event.data.json());
+  } catch (e) {
+    // Non-JSON payload: treat the raw text as the body.
+    const text = event.data ? event.data.text() : '';
+    if (text) data.body = text;
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      data: { url: data.url || '/' },
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+    })
+  );
+});
+
+// Tapping a notification focuses an existing app window or opens one.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clients) => {
+        for (const client of clients) {
+          if ('focus' in client) {
+            client.navigate(target);
+            return client.focus();
+          }
+        }
+        if (self.clients.openWindow) return self.clients.openWindow(target);
+      })
+  );
+});
