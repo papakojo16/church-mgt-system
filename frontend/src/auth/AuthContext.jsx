@@ -137,14 +137,19 @@ export function AuthProvider({ children }) {
     localStorage.setItem('mtolivet_notif_prompted', 'true');
   }
 
-  // Called after login (or when a session is restored): start the watcher if the
-  // user already allowed notifications, otherwise show the one-time enable prompt.
-  function setupNotifications() {
+  // Called after login/registration (and on session restore). Starts the watcher
+  // if notifications were already allowed; otherwise, when permission is still
+  // undecided, shows the enable prompt. `force` makes login/registration always
+  // prompt (while undecided) so the alert appears right after those moments.
+  function setupNotifications(force = false) {
     if (!notificationsSupported()) return;
     const perm = getPermission();
     if (perm === 'granted') {
       if (isEnabled() || localStorage.getItem('mtolivet_notif_enabled') !== 'false') startWatcher();
-    } else if (perm === 'default' && !wasPrompted()) {
+      return;
+    }
+    if (perm === 'denied') return;
+    if (force || !wasPrompted()) {
       localStorage.setItem('mtolivet_notif_prompted', 'true');
       setNotifPromptOpen(true);
     }
@@ -157,7 +162,7 @@ export function AuthProvider({ children }) {
     setRefreshToken(data.refresh_token);
     setStoredUser(data.user);
     setUser(data.user);
-    setupNotifications();
+    setupNotifications(true);
     try {
       const themeData = await api.get('/api/theme/colors');
       const defaultName = themeData.default;
@@ -176,7 +181,7 @@ export function AuthProvider({ children }) {
     setRefreshToken(data.refresh_token);
     setStoredUser(data.user);
     setUser(data.user);
-    setupNotifications();
+    setupNotifications(true);
     return data.user;
   }
 
