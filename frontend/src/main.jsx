@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { AuthProvider } from './auth/AuthContext.jsx';
 import { SnackbarProvider } from './ui/Shared.jsx';
+import ErrorBoundary from './ui/ErrorBoundary.jsx';
 import { preloadPublicData } from './api/publicData.js';
 import './styles.css';
 
@@ -39,13 +40,15 @@ async function registerSW() {
 
 // App entry point: wraps the app in the router and the snackbar + auth providers.
 createRoot(document.getElementById('root')).render(
-  <BrowserRouter>
-    <SnackbarProvider>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </SnackbarProvider>
-  </BrowserRouter>
+  <ErrorBoundary>
+    <BrowserRouter>
+      <SnackbarProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </SnackbarProvider>
+    </BrowserRouter>
+  </ErrorBoundary>
 );
 
 registerSW();

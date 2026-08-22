@@ -1,11 +1,15 @@
-const CACHE = 'mtolivet-v32';
+const CACHE = 'mtolivet-v33';
 const SHELL = ['/', '/index.html', '/manifest.json', '/icons/favicon.png', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(SHELL))
+      .then(async (cache) => {
+        // Cache each shell asset individually so a single missing file can't
+        // abort the whole install (which would leave the app on a stale worker).
+        await Promise.allSettled(SHELL.map((url) => cache.add(url).catch(() => {})));
+      })
       .then(() => self.skipWaiting())
   );
 });

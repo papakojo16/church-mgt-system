@@ -2448,3 +2448,40 @@ label.upload-btn {
     font-size: 17px;
   }
 }
+
+/* Error boundary fallback so a crash shows a message instead of a blank page. */
+.error-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg, #f4f6f9);
+}
+.error-card {
+  max-width: 560px;
+  width: 100%;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+.error-card h1 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  color: var(--error, #e53935);
+}
+.error-detail {
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
+  max-height: 220px;
+  overflow: auto;
+  margin: 16px 0;
+}
