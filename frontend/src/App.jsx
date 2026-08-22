@@ -76,7 +76,7 @@ function RequireRole({ roles, children }) {
 
 // Top app bar: online/offline status, pending-change chip, sync + dark-mode buttons, user info.
 function AppBar({ title }) {
-  const { user, online, pending, syncing, darkMode, setDarkMode, doSync, logout, themeName, setThemeName, enableNotifications, notifPermission } = useAuth();
+  const { user, online, pending, syncing, darkMode, setDarkMode, logout, themeName, setThemeName, enableNotifications, notifPermission } = useAuth();
   const navigate = useNavigate();
   const [confirmLogout, setConfirmLogout] = useState(false);
 
@@ -106,16 +106,8 @@ function AppBar({ title }) {
         )}
       </div>
       <div className="appbar-right">
-        {/* Sync button — always visible so users can push queued offline changes at any time.
-            Shows the pending count when there are queued writes and a "Syncing…" state while pushing. */}
-        <button
-          className={`chip refresh ${syncing || pending === 0 ? 'ready' : ''}`}
-          onClick={doSync}
-          disabled={syncing}
-          title={pending > 0 ? 'Sync pending changes' : 'Check for pending changes'}
-        >
-          <Icon name="refresh-cw" size={14} /> {syncing ? 'Syncing\u2026' : pending > 0 ? `Sync (${pending})` : 'Sync'}
-        </button>
+        {/* Offline changes sync automatically (every 30s while online, and on reconnect),
+            so no manual sync button is shown here. The pending count is still displayed. */}
         <button className="icon-btn" onClick={() => setDarkMode(!darkMode)} title={darkMode ? 'Light mode' : 'Dark mode'}>
           <Icon name={darkMode ? 'sun' : 'moon'} size={18} />
         </button>
