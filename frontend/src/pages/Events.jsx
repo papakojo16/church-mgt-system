@@ -375,7 +375,7 @@ function AttendanceModal({ event, onClose, snackbar }) {
         <div className="field">
           <label>Member</label>
           <select value={memberId} onChange={(e) => setMemberId(e.target.value)} required>
-            <option value="">Select member\u2026</option>
+            <option value="">Select member…</option>
             {(members || []).map((m) => (
               <option key={m.id} value={m.id}>
                 {m.full_name}

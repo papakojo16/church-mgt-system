@@ -164,7 +164,7 @@ function DonationsTab({ isFin, isReader, snackbar }) {
             <div className="field">
               <label>Member</label>
               <select value={form.member_id} onChange={(e) => set('member_id', e.target.value)} required>
-                <option value="">Select member\u2026</option>
+                <option value="">Select member…</option>
                 {(members || []).map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.full_name}
