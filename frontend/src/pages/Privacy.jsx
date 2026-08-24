@@ -166,9 +166,6 @@ export default function Privacy() {
           onChange={(e) => setDraft(e.target.value)}
           rows={20}
         />
-        <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-          Markdown supported: # headings, **bold**, - lists, [links](url).
-        </p>
       </Modal>
     </div>
   );
