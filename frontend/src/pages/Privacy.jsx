@@ -97,6 +97,22 @@ export default function Privacy() {
     setEditing(true);
   }
 
+  // One-click reset: overwrite any stored value (e.g. a stray test edit) with
+  // the bundled PRIVACY.md so the page shows the real policy again.
+  async function restoreDefault() {
+    setBusy(true);
+    try {
+      await api.put('/api/privacy', { content: policyText }, { queue: false });
+      setText(policyText);
+      setEditing(false);
+      snackbar('Privacy policy restored to default', 'success');
+    } catch (e) {
+      snackbar('Failed to restore privacy policy', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function save() {
     setBusy(true);
     try {
@@ -131,6 +147,10 @@ export default function Privacy() {
         onClose={() => setEditing(false)}
         footer={
           <>
+            <button className="btn secondary" onClick={restoreDefault} disabled={busy} title="Replace with the policy from PRIVACY.md">
+              Restore default
+            </button>
+            <span style={{ flex: 1 }} />
             <button className="btn secondary" onClick={() => setEditing(false)}>
               Cancel
             </button>

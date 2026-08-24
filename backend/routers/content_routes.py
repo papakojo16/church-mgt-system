@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 import base64
+import os
 import re
 
 import announcements
@@ -426,15 +427,29 @@ def user_ministries(user_id: int, user: dict = Depends(require(*ALL_LOGGED))):
 
 # ---- Privacy policy ----
 
+def _default_privacy_text():
+    # When nothing has been customized, return the bundled PRIVACY.md so the
+    # public default always matches the source file (and the frontend's initial
+    # render), avoiding any flash of changing content.
+    try:
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "PRIVACY.md")
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception:
+        return ""
+
+
 @router.get("/privacy")
 def privacy_policy():
     # Public read of the privacy policy (no auth, so visitors can review it
-    # before registering). Returns the saved text, or "" if never customized
-    # (the frontend then falls back to its bundled PRIVACY.md).
+    # before registering). Returns the saved text, or the bundled PRIVACY.md
+    # when it has never been customized.
     try:
         content = church_content.get_church_content("privacy_policy")
     except Exception:
         content = None
+    if not content:
+        content = _default_privacy_text()
     return {"content": content or ""}
 
 
