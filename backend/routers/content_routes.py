@@ -7,6 +7,7 @@ import events
 import ministries
 import service_details
 import activity_logs
+import church_content
 from .church_routes import invalidate_public_cache
 from deps import get_current_user, require
 
@@ -421,3 +422,28 @@ def remove_ministry_picture(ministry_id: int, picture_id: int, user: dict = Depe
 def user_ministries(user_id: int, user: dict = Depends(require(*ALL_LOGGED))):
     # Ministries a given user belongs to, with their role in each.
     return ministries.get_user_ministries(user_id)
+
+
+# ---- Privacy policy ----
+
+@router.get("/privacy")
+def privacy_policy():
+    # Public read of the privacy policy (no auth, so visitors can review it
+    # before registering). Returns the saved text, or "" if never customized
+    # (the frontend then falls back to its bundled PRIVACY.md).
+    try:
+        content = church_content.get_church_content("privacy_policy")
+    except Exception:
+        content = None
+    return {"content": content or ""}
+
+
+@router.put("/privacy")
+def update_privacy_policy(payload: dict, user: dict = Depends(require("admin"))):
+    # Only admins may edit the privacy policy; stored as a plain markdown string.
+    text = payload.get("content", "")
+    if not isinstance(text, str):
+        raise HTTPException(status_code=400, detail="content must be a string")
+    church_content.save_church_content("privacy_policy", text)
+    activity_logs.log_activity(user["id"], "updated", "Privacy", "Privacy policy")
+    return {"message": "Privacy policy updated"}

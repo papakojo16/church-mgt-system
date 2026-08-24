@@ -2485,3 +2485,24 @@ label.upload-btn {
   overflow: auto;
   margin: 16px 0;
 }
+
+/* Privacy policy page: keep the Back link and the admin edit icon on one row. */
+.privacy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.privacy-editor {
+  width: 100%;
+  min-height: 360px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--surface, #fff);
+  color: var(--text, #1a2233);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+}

@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext.jsx';
+import { Modal, useSnackbar } from '../ui/Shared.jsx';
+import { Icon } from '../ui/icons.jsx';
+import { api } from '../api/client.js';
 import policyText from '../../../PRIVACY.md?raw';
 
 // Tiny Markdown subset renderer (headings, lists, bold, links, paragraphs) so the
@@ -61,14 +65,91 @@ function renderMarkdown(md) {
 }
 
 // Public privacy-policy page. No auth required so visitors can read it before registering.
+// Admins additionally get an "update" icon to edit the policy, which is stored server-side
+// (falling back to the bundled PRIVACY.md when nothing has been customized yet).
 export default function Privacy() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const snackbar = useSnackbar();
+  const isAdmin = user?.role === 'admin';
+
+  const [text, setText] = useState(policyText);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  // Load any admin-customized policy; keep the bundled copy as the initial/fallback value.
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get('/api/privacy')
+      .then((data) => {
+        if (!cancelled && data && data.content) setText(data.content);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function openEditor() {
+    setDraft(text);
+    setEditing(true);
+  }
+
+  async function save() {
+    setBusy(true);
+    try {
+      await api.put('/api/privacy', { content: draft }, { queue: false });
+      setText(draft);
+      setEditing(false);
+      snackbar('Privacy policy updated', 'success');
+    } catch (e) {
+      snackbar('Failed to update privacy policy', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="privacy-page container">
-      <button className="auth-link mb-16" onClick={() => navigate(-1)}>
-        &larr; Back
-      </button>
-      <div className="privacy-content">{renderMarkdown(policyText)}</div>
+      <div className="privacy-header">
+        <button className="auth-link" onClick={() => navigate(-1)}>
+          &larr; Back
+        </button>
+        {isAdmin && (
+          <button className="icon-btn" title="Update privacy policy" onClick={openEditor}>
+            <Icon name="edit-2" size={18} />
+          </button>
+        )}
+      </div>
+      <div className="privacy-content">{renderMarkdown(text)}</div>
+
+      <Modal
+        title="Update Privacy Policy"
+        open={editing}
+        onClose={() => setEditing(false)}
+        footer={
+          <>
+            <button className="btn secondary" onClick={() => setEditing(false)}>
+              Cancel
+            </button>
+            <button className="btn primary" onClick={save} disabled={busy}>
+              {busy ? 'Saving…' : 'Save'}
+            </button>
+          </>
+        }
+      >
+        <textarea
+          className="privacy-editor"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          rows={20}
+        />
+        <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+          Markdown supported: # headings, **bold**, - lists, [links](url).
+        </p>
+      </Modal>
     </div>
   );
 }
