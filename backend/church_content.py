@@ -48,6 +48,8 @@ DEFAULT_SOCIAL = {"phone": "", "whatsapp": "", "email": "", "facebook": "", "tik
 
 DEFAULT_GALLERY = []
 
+DEFAULT_NEWS = []
+
 
 def get_church_content(section_name):
     # Read a section's saved JSON blob from the DB; returns None if unset.
@@ -195,6 +197,14 @@ def save_gallery(items):
     save_church_content("gallery", items)
 
 
+def get_news():
+    return get_church_content("news") or DEFAULT_NEWS
+
+
+def save_news(items):
+    save_church_content("news", items)
+
+
 def get_public_content():
     # Aggregated payload for the public-facing website (minus admin-only data).
     return {
@@ -204,6 +214,7 @@ def get_public_content():
         "organisations": get_public_organisations(),
         "activities": get_activities(),
         "gallery": get_gallery(),
+        "news": get_news(),
         "logo": get_church_logo(),
         "social": get_social(),
         "upcoming_events": [],

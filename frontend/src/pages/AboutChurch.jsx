@@ -72,6 +72,8 @@ export default function AboutChurch() {
         <p className="hero-slogan">Mt.Olivet!!!... Mpaebo Bea, Place of Prayer</p>
       </header>
 
+      {data?.news?.length > 0 && <NewsTicker news={data.news} />}
+
       <div className="ab-tabs">
         {TABS.map(([key, label]) => (
           <button key={key} className={tab === key ? 'active' : ''} onClick={() => setTab(key)}>
@@ -265,6 +267,26 @@ function GalleryPanel() {
           View gallery <Icon name="chevron-down" size={14} />
         </span>
       </button>
+    </div>
+  );
+}
+
+// Horizontal scrolling news ticker
+function NewsTicker({ news }) {
+  // Duplicate items for seamless infinite scroll
+  const items = [...news, ...news];
+  return (
+    <div className="news-ticker" aria-live="polite" aria-label="Church news">
+      <div className="news-ticker-track">
+        {items.map((item, index) => (
+          <div key={index} className="news-item">
+            <Icon name="megaphone" size={14} />
+            <span className="news-title">{item.title}</span>
+            {item.content && <span className="news-content">{item.content}</span>}
+            <Icon name="circle" size={8} className="news-divider" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

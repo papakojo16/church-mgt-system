@@ -1779,6 +1779,107 @@ table.data tbody tr:hover {
   margin-top: 8px;
   animation: fadeUp 0.8s 0.1s ease both;
 }
+
+/* ================= News Ticker ================= */
+.news-ticker {
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(90deg, var(--theme-dark), var(--theme-medium));
+  padding: 12px 0;
+  position: relative;
+}
+.news-ticker::before,
+.news-ticker::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  z-index: 2;
+  pointer-events: none;
+}
+.news-ticker::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--theme-dark), transparent);
+}
+.news-ticker::after {
+  right: 0;
+  background: linear-gradient(270deg, var(--theme-dark), transparent);
+}
+.news-ticker-track {
+  display: flex;
+  animation: tickerScroll 30s linear infinite;
+  width: max-content;
+}
+.news-ticker:hover .news-ticker-track {
+  animation-play-state: paused;
+}
+@keyframes tickerScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.news-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  color: #fff;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 500;
+}
+.news-item svg {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+.news-title {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 13px;
+}
+.news-content {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.95;
+  font-size: 13px;
+}
+.news-divider {
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+  .news-ticker {
+    padding: 10px 0;
+  }
+  .news-item {
+    padding: 0 16px;
+    font-size: 13px;
+  }
+  .news-title { font-size: 12px; }
+  .news-content { font-size: 12px; }
+  .news-ticker::before,
+  .news-ticker::after {
+    width: 60px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .news-ticker-track {
+    animation: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+  }
+  .news-ticker::before,
+  .news-ticker::after {
+    display: none;
+  }
+}
+
 .ab-tabs {
   display: flex;
   gap: 8px;

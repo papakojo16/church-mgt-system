@@ -65,9 +65,12 @@ export default function ChurchProfile() {
   const [social, setSocial] = useState({ phone: '', whatsapp: '', email: '', facebook: '', tiktok: '' });
   const [logo, setLogo] = useState('');
   const [gallery, setGallery] = useState([]);
+  const [news, setNews] = useState([]);
   const [imgCaption, setImgCaption] = useState('');
   const [orgCaption, setOrgCaption] = useState('');
   const [galleryCaption, setGalleryCaption] = useState('');
+  const [newsTitle, setNewsTitle] = useState('');
+  const [newsContent, setNewsContent] = useState('');
 
   React.useEffect(() => {
     if (data) {
@@ -77,6 +80,7 @@ export default function ChurchProfile() {
       setOrganisations(data.organisations || []);
       setActivities(data.activities || []);
       setGallery(data.gallery || []);
+      setNews(data.news || []);
       setSocial({ phone: '', whatsapp: '', email: '', facebook: '', tiktok: '', ...(data.social || {}) });
       setLogo(data.logo || '');
     }
@@ -91,6 +95,7 @@ export default function ChurchProfile() {
       else if (section === 'organisations') await api.put('/api/church-content/organisations', { items: organisations });
       else if (section === 'activities') await api.put('/api/church-content/activities', { items: activities });
       else if (section === 'gallery') await api.put('/api/church-content/gallery', { items: gallery });
+      else if (section === 'news') await api.put('/api/church-content/news', { items: news });
       else if (section === 'social') await api.put('/api/church-content/social', { value: social });
       else if (section === 'logo') await api.put('/api/church-content/logo', { value: logo });
       snackbar('Saved', 'success');
@@ -247,6 +252,7 @@ export default function ChurchProfile() {
     ['organisations', 'Organisations'],
     ['activities', 'Activities'],
     ['gallery', 'Gallery'],
+    ['news', 'Church News'],
     ['social', 'Social Media'],
   ];
 
@@ -512,6 +518,72 @@ export default function ChurchProfile() {
               value={galleryCaption}
               onChange={(e) => setGalleryCaption(e.target.value)}
             />
+          </div>
+        </div>
+      )}
+
+      {section === 'news' && (
+        <div>
+          <p className="muted mb-16" style={{ fontSize: 13 }}>
+            These news items will appear in a scrolling ticker under the hero section on the About the Church page.
+            Keep them short and timely.
+          </p>
+          {news.length > 0 && (
+            <div>
+              {news.map((n, i) => (
+                <div className="card mb-16" key={i}>
+                  <div className="field">
+                    <label>Title / Headline</label>
+                    <input
+                      value={n.title || ''}
+                      placeholder="e.g. Sunday Service Time Change"
+                      onChange={(e) => setNews(news.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))}
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Content</label>
+                    <textarea
+                      value={n.content || ''}
+                      placeholder="Brief description..."
+                      rows={2}
+                      onChange={(e) => setNews(news.map((x, j) => (j === i ? { ...x, content: e.target.value } : x)))}
+                    />
+                  </div>
+                  <button className="btn small danger" onClick={() => setNews(news.filter((_, j) => j !== i))}>
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="card mb-16">
+            <h3 style={{ marginBottom: 12, fontSize: 14 }}>Add New Item</h3>
+            <div className="field">
+              <label>Title / Headline</label>
+              <input
+                value={newsTitle}
+                placeholder="e.g. Sunday Service Time Change"
+                onChange={(e) => setNewsTitle(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Content</label>
+              <textarea
+                value={newsContent}
+                placeholder="Brief description..."
+                rows={2}
+                onChange={(e) => setNewsContent(e.target.value)}
+              />
+            </div>
+            <button className="btn secondary" onClick={() => {
+              if (newsTitle.trim() || newsContent.trim()) {
+                setNews([...news, { title: newsTitle.trim(), content: newsContent.trim() }]);
+                setNewsTitle('');
+                setNewsContent('');
+              }
+            }}>
+              <Icon name="plus" size={15} /> Add News Item
+            </button>
           </div>
         </div>
       )}
