@@ -1,7 +1,7 @@
 import threading
 import time
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
@@ -47,14 +47,16 @@ def _warm_public_cache():
 
 
 @router.get("/public")
-def public_content():
+def public_content(request: Request):
     # Public (no auth) church homepage content, cached for PUBLIC_CACHE_TTL.
     # The lock + double-check avoids stampede when the cache expires concurrently.
+    # Accept 'force' query param to bypass server cache (used after mutations).
+    force = request.query_params.get("force") == "1"
     now = time.time()
-    if _public_cache["data"] is None or now - _public_cache["at"] > PUBLIC_CACHE_TTL:
+    if force or _public_cache["data"] is None or now - _public_cache["at"] > PUBLIC_CACHE_TTL:
         with _public_lock:
             now = time.time()
-            if _public_cache["data"] is None or now - _public_cache["at"] > PUBLIC_CACHE_TTL:
+            if force or _public_cache["data"] is None or now - _public_cache["at"] > PUBLIC_CACHE_TTL:
                 _public_cache["data"] = _build_public_content()
                 _public_cache["at"] = time.time()
     # max-age matches PUBLIC_CACHE_TTL so browsers reuse the copy on repeat

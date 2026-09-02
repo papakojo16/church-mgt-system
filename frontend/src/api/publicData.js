@@ -21,13 +21,10 @@ onContentMutated(() => {
 export function getPublicData({ force = false } = {}) {
   if (cached && !force) return Promise.resolve(cached);
   if (inflight && !force) return inflight;
-  // Stable URL (no cache-busting param) so the browser HTTP cache / service
-  // worker can serve repeat visits instantly; /api/public is bounded fresh by a
-  // short max-age server-side. Right after a mutation, bypass that HTTP cache.
-  const fresh = force || needsFresh;
-  const url = fresh ? `/api/public?t=${Date.now()}` : '/api/public';
+  // Use force=1 query param to bypass server-side cache; also use no-store for browser cache
+  const url = force ? '/api/public?force=1' : '/api/public';
   inflight = api
-    .get(url, fresh ? { cache: 'no-store' } : {})
+    .get(url, force ? { cache: 'no-store' } : {})
     .then((d) => {
       cached = d;
       inflight = null;
