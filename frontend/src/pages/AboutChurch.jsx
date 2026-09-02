@@ -31,7 +31,8 @@ export default function AboutChurch() {
   // (getPublicData), so reusing it here makes the About tab render instantly
   // instead of re-downloading the full payload (incl. base64 images) every visit.
   useEffect(() => {
-    getPublicData()
+    // Force fresh fetch so news ticker always shows latest (bypasses in-memory + HTTP cache)
+    getPublicData({ force: true })
       .then(setData)
       .catch(() => setData(null));
   }, []);
