@@ -79,6 +79,7 @@ def get_content(user: dict = Depends(require("admin"))):
         "basics": church_content.get_basics(),
         "organisations": church_content.get_organisations(),
         "activities": church_content.get_activities(),
+        "gallery": church_content.get_gallery(),
         "logo": church_content.get_church_logo(),
         "social": church_content.get_social(),
     }
@@ -152,5 +153,16 @@ def save_social(payload: dict, user: dict = Depends(require("admin"))):
     # Social links stored as a key/value dict (e.g. facebook, twitter, youtube).
     church_content.save_social(payload.get("value", {}))
     activity_logs.log_activity(user["id"], "updated", "Church", "Updated social media links")
+    invalidate_public_cache()
+    return {"message": "Saved"}
+
+
+@router.put("/church-content/gallery")
+def save_gallery(payload: dict, user: dict = Depends(require("admin"))):
+    items = payload.get("items")
+    if not isinstance(items, list):
+        raise HTTPException(status_code=400, detail="items is required")
+    church_content.save_gallery(items)
+    activity_logs.log_activity(user["id"], "updated", "Church", "Updated gallery")
     invalidate_public_cache()
     return {"message": "Saved"}

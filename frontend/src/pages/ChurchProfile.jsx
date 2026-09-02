@@ -64,8 +64,10 @@ export default function ChurchProfile() {
   const [activities, setActivities] = useState([]);
   const [social, setSocial] = useState({ phone: '', whatsapp: '', email: '', facebook: '', tiktok: '' });
   const [logo, setLogo] = useState('');
+  const [gallery, setGallery] = useState([]);
   const [imgCaption, setImgCaption] = useState('');
   const [orgCaption, setOrgCaption] = useState('');
+  const [galleryCaption, setGalleryCaption] = useState('');
 
   React.useEffect(() => {
     if (data) {
@@ -74,6 +76,7 @@ export default function ChurchProfile() {
       setBasics(data.basics || []);
       setOrganisations(data.organisations || []);
       setActivities(data.activities || []);
+      setGallery(data.gallery || []);
       setSocial({ phone: '', whatsapp: '', email: '', facebook: '', tiktok: '', ...(data.social || {}) });
       setLogo(data.logo || '');
     }
@@ -87,6 +90,7 @@ export default function ChurchProfile() {
       else if (section === 'basics') await api.put('/api/church-content/basics', { items: basics });
       else if (section === 'organisations') await api.put('/api/church-content/organisations', { items: organisations });
       else if (section === 'activities') await api.put('/api/church-content/activities', { items: activities });
+      else if (section === 'gallery') await api.put('/api/church-content/gallery', { items: gallery });
       else if (section === 'social') await api.put('/api/church-content/social', { value: social });
       else if (section === 'logo') await api.put('/api/church-content/logo', { value: logo });
       snackbar('Saved', 'success');
@@ -188,6 +192,28 @@ export default function ChurchProfile() {
     setOrganisations(organisations.map((x, j) => (j === i ? { ...x, pictures: (x.pictures || []).filter((_, k) => k !== idx) } : x)));
   }
 
+  async function addGalleryImages(files, caption) {
+    const list = Array.from(files || []);
+    if (!list.length) return;
+    if (list.some((f) => !f.type.startsWith('image/'))) {
+      snackbar('Please choose image files only', 'error');
+      return;
+    }
+    try {
+      const added = [];
+      for (const file of list) {
+        try {
+          added.push({ image: await resizeImage(file), caption: String(caption || '').trim() });
+        } catch {
+          snackbar(`Could not read "${file.name || 'image'}"`, 'error');
+        }
+      }
+      setGallery((prev) => [...prev, ...added]);
+    } catch {
+      snackbar('Could not read one or more images', 'error');
+    }
+  }
+
   async function pickLogo(file) {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -220,6 +246,7 @@ export default function ChurchProfile() {
     ['basics', 'About / Mission'],
     ['organisations', 'Organisations'],
     ['activities', 'Activities'],
+    ['gallery', 'Gallery'],
     ['social', 'Social Media'],
   ];
 
@@ -446,6 +473,49 @@ export default function ChurchProfile() {
           </button>
         </div>
       )}
+
+      {section === 'gallery' && (
+        <div>
+          <p className="muted mb-16" style={{ fontSize: 13 }}>
+            These images will appear on the public Gallery page. Upload multiple images at once; each gets the same caption
+            which you can edit individually afterwards.
+          </p>
+          {gallery.length > 0 && (
+            <div className="upload-gallery">
+              {gallery.map((pic, k) => {
+                const cur = typeof pic === 'string' ? { image: pic, caption: '' } : pic;
+                return (
+                  <div className="upload-thumb" key={k}>
+                    <img src={cur.image} alt="" />
+                    <div className="field" style={{ width: '100%' }}>
+                      <input
+                        placeholder="Image caption"
+                        value={cur.caption || ''}
+                        onChange={(e) => setGallery(gallery.map((p, j) => (j === k ? { ...p, caption: e.target.value } : p)))}
+                      />
+                    </div>
+                    <button type="button" className="btn small danger" onClick={() => setGallery(gallery.filter((_, j) => j !== k))} title="Remove">
+                      <Icon name="trash-2" size={13} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <label className="btn secondary file-btn" style={{ display: 'inline-flex', gap: 6, marginTop: 8 }}>
+            <Icon name="upload-cloud" size={15} /> Upload images
+            <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => { addGalleryImages(e.target.files, galleryCaption); setGalleryCaption(''); e.target.value = ''; }} />
+          </label>
+          <div className="field" style={{ marginTop: 8 }}>
+            <input
+              placeholder="Caption for new images"
+              value={galleryCaption}
+              onChange={(e) => setGalleryCaption(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
+
       {section === 'social' && (
         <div className="card">
           <p className="muted mb-16" style={{ fontSize: 13 }}>

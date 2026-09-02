@@ -14,6 +14,7 @@ const TABS = [
   ['activities', 'Activities'],
   ['events', 'Events'],
   ['announcements', 'Announcements'],
+  ['gallery', 'Gallery'],
 ];
 
 // Public "About the Church" page: pulls all church content from the public API and renders it by tab.
@@ -89,6 +90,7 @@ export default function AboutChurch() {
             {tab === 'activities' && <ActivitiesPanel data={data} onOpen={(a) => navigate(`/about-church/activity/${slugify(a.title)}`)} />}
             {tab === 'events' && <EventsPanel data={data} />}
             {tab === 'announcements' && <AnnouncementsPanel data={data} />}
+            {tab === 'gallery' && <GalleryPanel />}
           </>
         )}
       </div>
@@ -244,6 +246,25 @@ function AnnouncementsPanel({ data }) {
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+// Gallery tab: shows a link to the full animated gallery page.
+function GalleryPanel() {
+  const navigate = useNavigate();
+  return (
+    <div className="grid two">
+      <button className="ab-item reveal ab-clickable" onClick={() => navigate('/gallery')}>
+        <div className="ab-sub">Gallery</div>
+        <h3>Photo Gallery</h3>
+        <p className="muted" style={{ fontSize: 13, lineHeight: 1.6 }}>
+          Browse our full collection of church moments, events, and celebrations in an animated gallery.
+        </p>
+        <span className="ab-view">
+          View gallery <Icon name="chevron-down" size={14} />
+        </span>
+      </button>
     </div>
   );
 }

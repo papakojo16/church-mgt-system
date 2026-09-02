@@ -46,6 +46,8 @@ DEFAULT_TAGLINE = "Growing Together in Faith, Hope, and Love"
 
 DEFAULT_SOCIAL = {"phone": "", "whatsapp": "", "email": "", "facebook": "", "tiktok": ""}
 
+DEFAULT_GALLERY = []
+
 
 def get_church_content(section_name):
     # Read a section's saved JSON blob from the DB; returns None if unset.
@@ -185,6 +187,14 @@ def save_social(data):
     save_church_content("social", data)
 
 
+def get_gallery():
+    return get_church_content("gallery") or DEFAULT_GALLERY
+
+
+def save_gallery(items):
+    save_church_content("gallery", items)
+
+
 def get_public_content():
     # Aggregated payload for the public-facing website (minus admin-only data).
     return {
@@ -193,6 +203,7 @@ def get_public_content():
         "basics": get_basics(),
         "organisations": get_public_organisations(),
         "activities": get_activities(),
+        "gallery": get_gallery(),
         "logo": get_church_logo(),
         "social": get_social(),
         "upcoming_events": [],

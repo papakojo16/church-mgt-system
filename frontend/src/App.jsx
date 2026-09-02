@@ -8,6 +8,7 @@ import { getPublicData } from './api/publicData.js';
 import Landing from './pages/Landing.jsx';
 import AboutChurch from './pages/AboutChurch.jsx';
 import AboutDetail from './pages/AboutDetail.jsx';
+import Gallery from './pages/Gallery.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Privacy from './pages/Privacy.jsx';
@@ -318,6 +319,7 @@ export default function App() {
       <Route path="/about-church/organisation/:slug" element={<AboutDetail kind="organisation" />} />
       <Route path="/about-church/activity/:slug" element={<AboutDetail kind="activity" />} />
       <Route path="/about-church/basic/:slug" element={<AboutDetail kind="basic" />} />
+      <Route path="/gallery" element={<Gallery />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/privacy" element={<Privacy />} />
