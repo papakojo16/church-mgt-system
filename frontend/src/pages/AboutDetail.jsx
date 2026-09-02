@@ -6,6 +6,25 @@ import { useReveal } from '../ui/hooks.jsx';
 import { SocialLinks, Confirm, fmtEventWhen } from '../ui/Shared.jsx';
 import { Icon } from '../ui/icons.jsx';
 
+// Horizontal scrolling news ticker
+function NewsTicker({ news }) {
+  const items = [...news, ...news];
+  return (
+    <div className="news-ticker" aria-live="polite" aria-label="Church news">
+      <div className="news-ticker-track">
+        {items.map((item, index) => (
+          <div key={index} className="news-item">
+            <Icon name="megaphone" size={14} />
+            <span className="news-title">{item.title}</span>
+            {item.content && <span className="news-content">{item.content}</span>}
+            <Icon name="circle" size={8} className="news-divider" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Convert a title into a URL-safe slug (lowercase, hyphens, no leading/trailing dash). Also imported by AboutChurch.jsx.
 export function slugify(s) {
   return String(s || '')
@@ -98,6 +117,8 @@ export default function AboutDetail({ kind }) {
         <h1>{loading ? label : item ? item.title : 'Not Found'}</h1>
         <p>{loading ? 'Loading...' : item ? (item.subtitle || '') : `This ${isActivity ? 'activity' : isBasic ? 'section' : 'organisation'} could not be found.`}</p>
       </header>
+
+      {data?.news?.length > 0 && <NewsTicker news={data.news} />}
 
       <main className="ab-detail-page">
         {loading ? (

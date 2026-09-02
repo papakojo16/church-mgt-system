@@ -1833,31 +1833,35 @@ table.data tbody tr:hover {
   align-items: center;
   gap: 8px;
   padding: 0 24px;
-  color: #fff;
+  color: #1e40af;
   white-space: nowrap;
   font-size: 14px;
   font-weight: 500;
 }
 .news-item svg {
   flex-shrink: 0;
-  opacity: 0.9;
+  opacity: 0.8;
+  color: #1e40af;
 }
 .news-title {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   font-size: 13px;
+  color: #1e40af;
 }
 .news-content {
   font-weight: 400;
   text-transform: none;
   letter-spacing: 0;
-  opacity: 0.95;
+  opacity: 0.85;
   font-size: 13px;
+  color: #1e40af;
 }
 .news-divider {
-  opacity: 0.4;
+  opacity: 0.3;
   flex-shrink: 0;
+  color: #1e40af;
 }
 
 @media (max-width: 700px) {
