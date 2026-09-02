@@ -1853,16 +1853,17 @@ table.data tbody tr:hover {
 @media (max-width: 700px) {
   .news-ticker {
     padding: 10px 0;
+    background: linear-gradient(90deg, var(--theme-dark), var(--theme-medium)) !important;
   }
   .news-item {
-    padding: 0 16px;
+    padding: 0 12px;
     font-size: 13px;
   }
   .news-title { font-size: 12px; }
   .news-content { font-size: 12px; }
   .news-ticker::before,
   .news-ticker::after {
-    width: 60px;
+    width: 40px;
   }
 }
 

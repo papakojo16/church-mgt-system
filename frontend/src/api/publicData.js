@@ -25,8 +25,9 @@ export function getPublicData({ force = false } = {}) {
   // worker can serve repeat visits instantly; /api/public is bounded fresh by a
   // short max-age server-side. Right after a mutation, bypass that HTTP cache.
   const fresh = force || needsFresh;
+  const url = fresh ? `/api/public?t=${Date.now()}` : '/api/public';
   inflight = api
-    .get('/api/public', fresh ? { cache: 'no-store' } : {})
+    .get(url, fresh ? { cache: 'no-store' } : {})
     .then((d) => {
       cached = d;
       inflight = null;

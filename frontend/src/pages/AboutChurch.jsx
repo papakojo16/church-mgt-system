@@ -33,8 +33,23 @@ export default function AboutChurch() {
   useEffect(() => {
     // Force fresh fetch so news ticker always shows latest (bypasses in-memory + HTTP cache)
     getPublicData({ force: true })
-      .then(setData)
-      .catch(() => setData(null));
+      .then((d) => {
+        console.log('AboutChurch data:', d); // Debug
+        setData(d);
+      })
+      .catch((err) => {
+        console.error('AboutChurch fetch error:', err);
+        setData(null);
+      });
+
+    // Refresh when page becomes visible again (catches updates from other devices)
+    const onVisibilityChange = () => {
+      if (!document.hidden) {
+        getPublicData({ force: true }).then(setData).catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, []);
 
   const name = data?.church_name || 'Mt. Olivet Methodist Church';
@@ -74,6 +89,12 @@ export default function AboutChurch() {
       </header>
 
       {data?.news?.length > 0 && <NewsTicker news={data.news} />}
+      {/* Debug: show if news exists but is empty */}
+      {data && (!data.news || data.news.length === 0) && (
+        <div className="news-ticker" style={{ opacity: 0.5, fontSize: 12, padding: '8px 0', textAlign: 'center', background: 'var(--theme-bg)', color: 'var(--text-2)' }}>
+          No news items — add some in Church Profile → Church News
+        </div>
+      )}
 
       <div className="ab-tabs">
         {TABS.map(([key, label]) => (
