@@ -1784,12 +1784,12 @@ table.data tbody tr:hover {
 .news-ticker {
   width: 100%;
   overflow: hidden;
-  background: linear-gradient(90deg, #eab308, #ca8a04, #eab308);
+  background: linear-gradient(90deg, #fde68a, #fcd34d, #fde68a);
   background-size: 200% 100%;
-  animation: tickerGradientShift 8s ease infinite;
+  animation: tickerGradientShift 10s ease infinite;
   padding: 12px 0;
   position: relative;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 @keyframes tickerGradientShift {
   0%, 100% { background-position: 0% 50%; }
@@ -1807,11 +1807,11 @@ table.data tbody tr:hover {
 }
 .news-ticker::before {
   left: 0;
-  background: linear-gradient(90deg, #eab308, transparent);
+  background: linear-gradient(90deg, #fde68a, transparent);
 }
 .news-ticker::after {
   right: 0;
-  background: linear-gradient(270deg, #eab308, transparent);
+  background: linear-gradient(270deg, #fde68a, transparent);
 }
 .news-ticker-track {
   display: flex;
@@ -1863,14 +1863,14 @@ table.data tbody tr:hover {
 @media (max-width: 700px) {
   .news-ticker {
     padding: 10px 0;
-    background: linear-gradient(90deg, #eab308, #ca8a04, #eab308) !important;
+    background: linear-gradient(90deg, #fde68a, #fcd34d, #fde68a) !important;
     background-size: 200% 100% !important;
   }
   .news-ticker::before {
-    background: linear-gradient(90deg, #eab308, transparent) !important;
+    background: linear-gradient(90deg, #fde68a, transparent) !important;
   }
   .news-ticker::after {
-    background: linear-gradient(270deg, #eab308, transparent) !important;
+    background: linear-gradient(270deg, #fde68a, transparent) !important;
   }
   .news-item {
     padding: 0 12px;
