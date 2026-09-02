@@ -1815,8 +1815,10 @@ table.data tbody tr:hover {
 }
 .news-ticker-track {
   display: flex;
+  flex-wrap: nowrap;
   animation: tickerScroll 30s linear infinite;
   width: max-content;
+  will-change: transform;
 }
 .news-ticker:hover .news-ticker-track {
   animation-play-state: paused;
@@ -1826,7 +1828,8 @@ table.data tbody tr:hover {
   to { transform: translateX(-50%); }
 }
 .news-item {
-  display: inline-flex;
+  display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 8px;
   padding: 0 24px;
