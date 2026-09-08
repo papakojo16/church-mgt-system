@@ -88,7 +88,7 @@ export default function Statistics() {
   const isWriter = ['admin'].includes(user?.role);
 
   const { data, loading, reload } = useFetch(() => api.get('/api/attendance'), []);
-  const { data: chartData, reload: reloadChart } = useFetch(() => api.get('/api/attendance/chart'), []);
+  const { data: chartData, reload: reloadChart } = useFetch(() => api.get('/api/attendance/chart', { cache: 'no-store' }), []);
   const [formOpen, setFormOpen] = useState(false);
   // New attendance defaults to today's date (yyyy-mm-dd for the date input).
   const [form, setForm] = useState({ service_date: new Date().toISOString().slice(0, 10), adult_male: '', adult_female: '', child_male: '', child_female: '', note: '' });
