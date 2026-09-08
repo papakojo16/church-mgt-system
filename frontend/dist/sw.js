@@ -1,4 +1,4 @@
-const CACHE = 'mtolivet-v35';
+const CACHE = 'mtolivet-v36';
 const SHELL = ['/', '/index.html', '/manifest.json', '/icons/favicon.png', '/icons/icon-192.png', '/icons/icon-512.png'];
 const OFFLINE_FALLBACK = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mt.Olivet Methodist Church</title><style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f4f6fb;color:#1a1a2e;text-align:center;padding:1rem}h1{font-size:1.4rem;margin-bottom:.5rem}button{margin-top:1rem;padding:.6rem 1.6rem;border:none;border-radius:8px;background:#1e88e5;color:#fff;font-size:1rem;cursor:pointer}</style></head><body><div><h1>Mt. Olivet Methodist Church</h1><p>You are offline. Please check your internet connection and try again.</p><button onclick="location.reload()">Retry</button></div></body></html>';
 
