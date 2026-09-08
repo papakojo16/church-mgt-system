@@ -1,13 +1,12 @@
-const CACHE = 'mtolivet-v33';
+const CACHE = 'mtolivet-v34';
 const SHELL = ['/', '/index.html', '/manifest.json', '/icons/favicon.png', '/icons/icon-192.png', '/icons/icon-512.png'];
+const OFFLINE_FALLBACK = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mt.Olivet Methodist Church</title><style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f4f6fb;color:#1a1a2e;text-align:center;padding:1rem}h1{font-size:1.4rem;margin-bottom:.5rem}button{margin-top:1rem;padding:.6rem 1.6rem;border:none;border-radius:8px;background:#1e88e5;color:#fff;font-size:1rem;cursor:pointer}</style></head><body><div><h1>Mt. Olivet Methodist Church</h1><p>You are offline. Please check your internet connection and try again.</p><button onclick="location.reload()">Retry</button></div></body></html>';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
       .then(async (cache) => {
-        // Cache each shell asset individually so a single missing file can't
-        // abort the whole install (which would leave the app on a stale worker).
         await Promise.allSettled(SHELL.map((url) => cache.add(url).catch(() => {})));
       })
       .then(() => self.skipWaiting())
@@ -23,6 +22,12 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
@@ -31,21 +36,26 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
 
-  // Navigations: network first, fall back to cached app shell.
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((cache) => cache.put('/index.html', copy));
+          if (res && res.ok) {
+            const ct = res.headers.get('content-type') || '';
+            if (ct.includes('text/html')) {
+              const copy = res.clone();
+              caches.open(CACHE).then((cache) => cache.put('/index.html', copy));
+            }
+          }
           return res;
         })
-        .catch(() => caches.match('/index.html').then((c) => c || caches.match('/')))
+        .catch(() =>
+          caches.match('/index.html').then((c) => c || new Response(OFFLINE_FALLBACK, { headers: { 'Content-Type': 'text/html' } }))
+        )
     );
     return;
   }
 
-  // Everything else (assets + API GETs): stale-while-revalidate.
   event.respondWith(
     caches.match(req).then((cached) => {
       const network = fetch(req)
@@ -56,7 +66,7 @@ self.addEventListener('fetch', (event) => {
           }
           return res;
         })
-        .catch(() => cached);
+        .catch(() => cached || new Response('Offline', { status: 503, statusText: 'Service Unavailable' }));
       return cached || network;
     })
   );

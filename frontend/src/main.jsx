@@ -17,21 +17,31 @@ preloadPublicData();
 // When an updated worker activates on an already-controlled page, reload to pick up the new version.
 async function registerSW() {
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    const hadController = !!navigator.serviceWorker.controller;
     try {
       const reg = await navigator.serviceWorker.register('/sw.js');
-      if (hadController) {
-        reg.addEventListener('updatefound', () => {
-          const nw = reg.installing;
-          if (nw) {
-            nw.addEventListener('statechange', () => {
-              if (nw.state === 'activated') {
-                location.reload();
-              }
-            });
-          }
-        });
+
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (nw) {
+          nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              nw.postMessage({ type: 'SKIP_WAITING' });
+            }
+          });
+        }
+      });
+
+      if (navigator.serviceWorker.controller && reg.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
       }
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          location.reload();
+        }
+      });
     } catch (err) {
       console.warn('Service worker registration failed:', err);
     }

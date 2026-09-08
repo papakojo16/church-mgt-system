@@ -113,6 +113,12 @@ export default function Landing() {
       </nav>
 
       <header className="lp-hero">
+        <div className="hero-slider">
+          <div className="hero-slide" style={{ backgroundImage: `url('/images/hero1.jpeg')` }} />
+          <div className="hero-slide" style={{ backgroundImage: `url('/images/hero2.jpeg')` }} />
+          <div className="hero-slide" style={{ backgroundImage: `url('/images/hero3.jpeg')` }} />
+        </div>
+        <div className="hero-overlay" />
         <div className="hero-shape" style={{ width: 220, height: 220, top: -60, left: -60, animationDelay: '0s' }} />
         <div className="hero-shape" style={{ width: 140, height: 140, top: 30, right: 30, animationDelay: '1.5s' }} />
         <div className="hero-shape" style={{ width: 90, height: 90, bottom: 40, left: 60, animationDelay: '3s' }} />
