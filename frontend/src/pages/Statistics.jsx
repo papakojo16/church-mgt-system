@@ -88,7 +88,11 @@ export default function Statistics() {
   const isWriter = ['admin'].includes(user?.role);
 
   const { data, loading, reload } = useFetch(() => api.get('/api/attendance'), []);
-  const { data: chartData, reload: reloadChart } = useFetch(() => api.get('/api/attendance/chart', { cache: 'no-store' }), []);
+  const [chartTick, setChartTick] = useState(0);
+  const { data: chartData } = useFetch(
+    () => api.get(`/api/attendance/chart?_t=${chartTick}`, { cache: 'no-store' }),
+    [chartTick],
+  );
   const [formOpen, setFormOpen] = useState(false);
   // New attendance defaults to today's date (yyyy-mm-dd for the date input).
   const [form, setForm] = useState({ service_date: new Date().toISOString().slice(0, 10), adult_male: '', adult_female: '', child_male: '', child_female: '', note: '' });
@@ -119,7 +123,7 @@ export default function Statistics() {
       snackbar('Attendance saved', 'success');
       setFormOpen(false);
       reload().catch(() => {});
-      reloadChart().catch(() => {});
+      setChartTick((t) => t + 1);
     } catch (err) {
       snackbar(err.message || 'Save failed', 'error');
     } finally {
@@ -133,7 +137,7 @@ export default function Statistics() {
       snackbar('Attendance record deleted', 'success');
       setDeleting(null);
       reload().catch(() => {});
-      reloadChart().catch(() => {});
+      setChartTick((t) => t + 1);
     } catch (err) {
       snackbar(err.message || 'Delete failed', 'error');
     }
