@@ -2100,15 +2100,6 @@ label.upload-btn {
   line-height: 1.75;
   color: var(--text-2);
 }
-.ab-detail-hero {
-  width: 100%;
-  max-height: 320px;
-  object-fit: cover;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  margin-bottom: 16px;
-  display: block;
-}
 .ab-detail-section {
   margin-top: 28px;
 }
