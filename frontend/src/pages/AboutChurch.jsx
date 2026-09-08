@@ -149,26 +149,22 @@ function AboutPanel({ data, onOpen }) {
   const basics = data?.basics || [];
   return (
     <div className="grid two">
-      {basics.map((b, i) => {
-        const firstImg = b.images?.length > 0 ? (typeof b.images[0] === 'string' ? b.images[0] : b.images[0]?.image) : null;
-        return (
-          <button
-            key={i}
-            className="ab-item reveal ab-clickable"
-            onClick={() => onOpen(b)}
-            style={{ transitionDelay: `${i * 70}ms` }}
-          >
-            {firstImg && <img className="ab-flier" src={firstImg} alt={b.title} />}
-            <div className="ab-sub">{b.title}</div>
-            <p className="muted" style={{ fontSize: 14, lineHeight: 1.6 }}>
-              {b.content}
-            </p>
-            <span className="ab-view">
-              View details <Icon name="chevron-down" size={14} />
-            </span>
-          </button>
-        );
-      })}
+      {basics.map((b, i) => (
+        <button
+          key={i}
+          className="ab-item reveal ab-clickable"
+          onClick={() => onOpen(b)}
+          style={{ transitionDelay: `${i * 70}ms` }}
+        >
+          <div className="ab-sub">{b.title}</div>
+          <p className="muted" style={{ fontSize: 14, lineHeight: 1.6 }}>
+            {b.content}
+          </p>
+          <span className="ab-view">
+            View details <Icon name="chevron-down" size={14} />
+          </span>
+        </button>
+      ))}
     </div>
   );
 }

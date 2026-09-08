@@ -133,6 +133,10 @@ export default function AboutDetail({ kind }) {
             </button>
             {item && item.subtitle && <div className="ab-sub">{item.subtitle}</div>}
             <h1>{item ? item.title : 'Not Found'}</h1>
+            {(() => {
+              const firstImg = item?.images?.length > 0 ? (typeof item.images[0] === 'string' ? item.images[0] : item.images[0]?.image) : null;
+              return firstImg ? <img className="ab-detail-hero" src={firstImg} alt={item.title} /> : null;
+            })()}
             <p className="ab-detail-desc">{item ? (item.content || item.description) : `The ${typeName} you are looking for does not exist or has been removed.`}</p>
             {item?.events?.length > 0 && (
               <section className="ab-detail-section">
