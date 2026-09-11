@@ -2123,7 +2123,7 @@ button.ab-list-item:focus-visible {
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .ab-list-item {
     flex-direction: column;
     align-items: stretch;
