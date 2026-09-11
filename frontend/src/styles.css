@@ -1508,14 +1508,6 @@ table.data tbody tr:hover {
   padding: 72px 24px 56px;
   background: linear-gradient(135deg, var(--theme-dark), var(--theme-medium));
 }
-@media (min-width: 769px) {
-  .lp-hero {
-    aspect-ratio: 4 / 3;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-}
 .hero-slider {
   position: absolute;
   top: 0;
