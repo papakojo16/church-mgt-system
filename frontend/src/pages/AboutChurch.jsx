@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { getPublicData } from '../api/publicData.js';
-import { fmtDate, fmtEventWhen, SocialLinks, Loading } from '../ui/Shared.jsx';
+import { fmtDate, fmtEventWhen, SocialLinks } from '../ui/Shared.jsx';
 import { useReveal } from '../ui/hooks.jsx';
 import { Icon } from '../ui/icons.jsx';
 import { slugify } from './AboutDetail.jsx';
@@ -106,7 +106,7 @@ export default function AboutChurch() {
 
       <div className="ab-panel" key={tab}>
         {!data ? (
-          <Loading label="Loading church content…" />
+          <PanelSkeleton />
         ) : (
           <>
             {tab === 'about' && <AboutPanel data={data} onOpen={(b) => navigate(`/about-church/basic/${slugify(b.title)}`)} />}
@@ -140,6 +140,24 @@ export default function AboutChurch() {
       <footer className="lp-footer">
         {'\u00A9'} {new Date().getFullYear()} {name}
       </footer>
+    </div>
+  );
+}
+
+// Skeleton preview that mirrors the card layout while church content is loading.
+function PanelSkeleton() {
+  return (
+    <div className="skeleton-grid two" aria-busy="true" aria-label="Loading church content">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div className="ab-skeleton" key={i} style={{ animationDelay: `${i * 90}ms` }}>
+          <div className="sk-line sk-sub" />
+          <div className="sk-line sk-title" />
+          <div className="sk-line" />
+          <div className="sk-line short" />
+          <div className="sk-line" />
+          <div className="sk-view" />
+        </div>
+      ))}
     </div>
   );
 }
