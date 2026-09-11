@@ -2045,13 +2045,15 @@ table.data tbody tr:hover {
   border-color: var(--theme-medium);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
 }
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .ab-tabs {
-    flex-wrap: wrap;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, auto);
     gap: 8px;
     padding: 12px 12px;
+    overflow-x: visible;
+    justify-content: stretch;
   }
   .ab-tabs button {
     width: 100%;
