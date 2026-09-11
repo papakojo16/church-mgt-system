@@ -139,6 +139,7 @@ export default function Landing() {
           <div className="hero-slide" style={{ backgroundImage: `url('/images/hero1.jpeg')` }} />
           <div className="hero-slide" style={{ backgroundImage: `url('/images/hero2.jpeg')` }} />
           <div className="hero-slide" style={{ backgroundImage: `url('/images/hero3.jpeg')` }} />
+          <div className="hero-slide" style={{ backgroundImage: `url('/images/mount-olivet.jpg')` }} />
         </div>
         <div className="hero-overlay" />
         <div className="hero-shape" style={{ width: 220, height: 220, top: -60, left: -60, animationDelay: '0s' }} />
