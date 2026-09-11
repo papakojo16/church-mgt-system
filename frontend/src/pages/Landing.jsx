@@ -168,7 +168,7 @@ export default function Landing() {
 
       <section className="lp-section" id="features">
         <h2>Everything Your Church Needs</h2>
-        <p className="sub">A complete management system that works online and offline</p>
+        <p className="sub">A complete church management system that works online and offline</p>
         <div className="feat-grid">
           {FEATURES.map((f, i) => (
             <button className="feat-card reveal" key={f.title} onClick={() => go(f.to)} style={{ transitionDelay: `${i * 60}ms` }}>
