@@ -1799,10 +1799,17 @@ table.data tbody tr:hover {
 
 .lp-footer {
   text-align: center;
-  padding: 22px;
+  padding: 12px;
   color: var(--text-2);
-  font-size: 13px;
+  font-size: 12px;
   border-top: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .lp-footer {
+    padding: 10px;
+    font-size: 11px;
+  }
 }
 
 /* ================= About Church page ================= */
