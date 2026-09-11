@@ -30,9 +30,10 @@ export default function AboutChurch() {
   // Public content is already fetched and cached in memory by the landing page
   // (getPublicData), so reusing it here makes the About tab render instantly
   // instead of re-downloading the full payload (incl. base64 images) every visit.
+  // The cache is invalidated automatically after any mutation (onContentMutated),
+  // so the public pages never show stale content for the current session.
   useEffect(() => {
-    // Force fresh fetch so news ticker always shows latest (bypasses in-memory + HTTP cache)
-    getPublicData({ force: true })
+    getPublicData()
       .then((d) => {
         console.log('AboutChurch data:', d); // Debug
         setData(d);
@@ -45,7 +46,7 @@ export default function AboutChurch() {
     // Refresh when page becomes visible again (catches updates from other devices)
     const onVisibilityChange = () => {
       if (!document.hidden) {
-        getPublicData({ force: true }).then(setData).catch(() => {});
+        getPublicData().then(setData).catch(() => {});
       }
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
