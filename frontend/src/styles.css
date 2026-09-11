@@ -1820,40 +1820,11 @@ table.data tbody tr:hover {
   padding: 56px 24px 48px;
   text-align: center;
   overflow: hidden;
-  background:
-    radial-gradient(900px 500px at 82% -20%, rgba(255, 255, 255, 0.14), transparent 60%),
-    radial-gradient(700px 420px at 8% 130%, rgba(0, 0, 0, 0.35), transparent 60%),
-    linear-gradient(135deg, var(--theme-dark) 0%, var(--theme-medium) 130%);
-}
-.ab-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
-  background-size: 22px 22px;
-  opacity: 0.5;
-  pointer-events: none;
-}
-.ab-hero::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: -70px;
-  width: 150%;
-  height: 200px;
-  transform: translateX(-50%);
-  background: radial-gradient(50% 50% at 50% 50%, var(--theme-light), transparent 70%);
-  opacity: 0.22;
-  filter: blur(12px);
-  pointer-events: none;
-  animation: heroGlow 6s ease-in-out infinite;
-}
-@keyframes heroGlow {
-  0%, 100% { opacity: 0.18; }
-  50% { opacity: 0.34; }
+  background: linear-gradient(135deg, var(--theme-dark), var(--theme-medium));
 }
 .ab-hero-kicker {
   position: relative;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1872,17 +1843,21 @@ table.data tbody tr:hover {
 }
 .ab-hero h1 {
   position: relative;
+  z-index: 2;
   font-size: clamp(30px, 5vw, 44px);
   letter-spacing: -0.02em;
   animation: fadeUp 0.7s ease both;
 }
 .ab-hero p {
   position: relative;
+  z-index: 2;
   opacity: 0.92;
   margin-top: 8px;
   animation: fadeUp 0.8s 0.1s ease both;
 }
 .ab-hero .hero-slogan {
+  position: relative;
+  z-index: 2;
   display: inline-block;
   margin-top: 18px;
   padding: 8px 18px;

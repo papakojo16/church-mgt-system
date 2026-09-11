@@ -117,6 +117,12 @@ export default function AboutDetail({ kind }) {
       </nav>
 
       <header className="ab-hero">
+        <div className="hero-slider">
+          <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-1.jpg')" }} />
+          <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-2.jpg')" }} />
+          <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-3.jpg')" }} />
+        </div>
+        <div className="hero-overlay" />
         <span className="ab-hero-kicker">{label}</span>
         <h1>{loading ? label : item ? item.title : 'Not Found'}</h1>
         <p>{loading ? 'Loading...' : item ? (item.subtitle || '') : `This ${isActivity ? 'activity' : isBasic ? 'section' : 'organisation'} could not be found.`}</p>

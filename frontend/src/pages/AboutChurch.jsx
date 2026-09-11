@@ -84,6 +84,12 @@ export default function AboutChurch() {
       </div>
 
       <header className="ab-hero">
+        <div className="hero-slider">
+          <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-1.jpg')" }} />
+          <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-2.jpg')" }} />
+          <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-3.jpg')" }} />
+        </div>
+        <div className="hero-overlay" />
         <span className="ab-hero-kicker">About the Church</span>
         <h1>{name}</h1>
         <p>{tagline}</p>
