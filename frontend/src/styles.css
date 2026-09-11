@@ -1553,6 +1553,40 @@ table.data tbody tr:hover {
     transform: translateX(-100%);
   }
 }
+.ab-hero .hero-slide {
+  animation-name: heroSlideAbout;
+}
+.ab-hero .hero-slide:nth-child(1) {
+  animation-delay: 0s;
+}
+.ab-hero .hero-slide:nth-child(2) {
+  animation-delay: 3.6s;
+}
+.ab-hero .hero-slide:nth-child(3) {
+  animation-delay: 7.2s;
+}
+.ab-hero .hero-slide:nth-child(4) {
+  animation-delay: 10.8s;
+}
+.ab-hero .hero-slide:nth-child(5) {
+  animation-delay: 14.4s;
+}
+@keyframes heroSlideAbout {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  4%,
+  16% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  20%,
+  100% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
 .hero-overlay {
   position: absolute;
   top: 0;
