@@ -125,7 +125,6 @@ export default function AboutDetail({ kind }) {
           <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-5.jpg')" }} />
           <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-6.jpg')" }} />
           <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-8.jpg')" }} />
-          <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-9.jpg')" }} />
         </div>
         <div className="hero-overlay" />
         <span className="ab-hero-kicker">{label}</span>
