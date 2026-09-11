@@ -156,7 +156,7 @@ export default function AboutDetail({ kind }) {
                 <h3>Pictures</h3>
                 <div className="gallery">
                   {item.pictures.map((p) => (
-                    <div className="gallery-item" key={p.id}>
+                    <div className="gallery-item visible" key={p.id}>
                       <img src={p.image} alt={p.caption || item.title} onClick={() => setViewPic(p)} />
                       {p.caption && <div className="caption">{p.caption}</div>}
                     </div>
@@ -169,10 +169,9 @@ export default function AboutDetail({ kind }) {
                 <h3>Pictures</h3>
                 <div className="gallery">
                   {item.images.map((img, i) => {
-                    // Legacy data may store images as plain URL strings; normalise them to objects.
                     const pic = typeof img === 'string' ? { id: i, image: img, caption: '' } : img;
                     return (
-                      <div className="gallery-item" key={pic.id}>
+                      <div className="gallery-item visible" key={i}>
                         <img src={pic.image} alt={pic.caption || item.title} onClick={() => setViewPic(pic)} />
                         {pic.caption && <div className="caption">{pic.caption}</div>}
                       </div>
