@@ -154,6 +154,13 @@ const ICONS = {
     </>
   ),
   'chevron-down': <polyline points="6 9 12 15 18 9" />,
+  'chevron-right': <polyline points="9 18 15 12 9 6" />,
+  megaphone: (
+    <>
+      <path d="M3 11l18-5v12L3 14v-3z" />
+      <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+    </>
+  ),
   'arrow-left': (
     <>
       <line x1="19" y1="12" x2="5" y2="12" />

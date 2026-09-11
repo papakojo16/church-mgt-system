@@ -11,6 +11,9 @@ function NewsTicker({ news }) {
   const items = [...news, ...news];
   return (
     <div className="news-ticker" aria-live="polite" aria-label="Church news">
+      <span className="news-ticker-label">
+        <span className="news-live-dot" /> Latest News
+      </span>
       <div className="news-ticker-track">
         {items.map((item, index) => (
           <div key={index} className="news-item">
@@ -114,6 +117,7 @@ export default function AboutDetail({ kind }) {
       </nav>
 
       <header className="ab-hero">
+        <span className="ab-hero-kicker">{label}</span>
         <h1>{loading ? label : item ? item.title : 'Not Found'}</h1>
         <p>{loading ? 'Loading...' : item ? (item.subtitle || '') : `This ${isActivity ? 'activity' : isBasic ? 'section' : 'organisation'} could not be found.`}</p>
       </header>

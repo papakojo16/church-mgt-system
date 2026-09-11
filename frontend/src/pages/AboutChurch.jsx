@@ -84,6 +84,7 @@ export default function AboutChurch() {
       </div>
 
       <header className="ab-hero">
+        <span className="ab-hero-kicker">About the Church</span>
         <h1>{name}</h1>
         <p>{tagline}</p>
         <p className="hero-slogan">Mt.Olivet!!!... Mpaebo Bea, Place of Prayer</p>
@@ -327,6 +328,9 @@ function NewsTicker({ news }) {
   const items = [...news, ...news];
   return (
     <div className="news-ticker" aria-live="polite" aria-label="Church news">
+      <span className="news-ticker-label">
+        <span className="news-live-dot" /> Latest News
+      </span>
       <div className="news-ticker-track">
         {items.map((item, index) => (
           <div key={index} className="news-item">
