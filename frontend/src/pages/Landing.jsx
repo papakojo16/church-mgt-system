@@ -47,6 +47,28 @@ const FEATURES = [
 ];
 
 // Public landing page: hero, community stats, feature cards, and CTAs that adapt to login state.
+// Horizontal scrolling news ticker shown under the hero.
+function NewsTicker({ news }) {
+  const items = [...news, ...news];
+  return (
+    <div className="news-ticker" aria-live="polite" aria-label="Church news">
+      <span className="news-ticker-label">
+        <span className="news-live-dot" /> Latest News
+      </span>
+      <div className="news-ticker-track">
+        {items.map((item, index) => (
+          <div key={index} className="news-item">
+            <Icon name="megaphone" size={14} />
+            <span className="news-title">{item.title}</span>
+            {item.content && <span className="news-content">{item.content}</span>}
+            <Icon name="circle" size={8} className="news-divider" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Landing() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -150,6 +172,8 @@ export default function Landing() {
           <Icon name="chevron-down" size={24} />
         </div>
       </header>
+
+      {data?.news?.length > 0 && <NewsTicker news={data.news} />}
 
       <section className="lp-section" id="community">
         <h2>Our Community</h2>

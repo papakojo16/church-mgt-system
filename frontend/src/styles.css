@@ -1886,6 +1886,28 @@ table.data tbody tr:hover {
   font-weight: 600;
   letter-spacing: 0.5px;
 }
+@media (max-width: 768px) {
+  .ab-hero {
+    padding: 44px 16px 40px;
+  }
+  .ab-hero-kicker {
+    margin-bottom: 10px;
+    padding: 5px 12px;
+    font-size: 10px;
+  }
+  .ab-hero h1 {
+    font-size: clamp(26px, 7vw, 34px);
+  }
+  .ab-hero p {
+    margin-top: 6px;
+    font-size: 14px;
+  }
+  .ab-hero .hero-slogan {
+    margin-top: 12px;
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+}
 
 /* ================= News Ticker ================= */
 .news-ticker {
