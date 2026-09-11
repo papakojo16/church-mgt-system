@@ -122,12 +122,12 @@ export default function AboutDetail({ kind }) {
 
       <main className="ab-detail-page">
         {loading ? (
-          <div className="ab-detail-card">
+          <div className="ab-detail-loading">
             <div className="spinner" />
             <p className="muted center mt-8">Loading {label.toLowerCase()}...</p>
           </div>
         ) : (
-          <article className="ab-detail-card reveal">
+          <article className="ab-detail-content reveal">
             <button className="ab-back" onClick={goBack}>
               <Icon name="arrow-left" size={16} /> All {label}
             </button>

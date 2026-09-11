@@ -145,42 +145,41 @@ export default function AboutChurch() {
   );
 }
 
-// Skeleton preview that mirrors the card layout while church content is loading.
+// Skeleton preview that mirrors the list layout while church content is loading.
 function PanelSkeleton() {
   return (
-    <div className="skeleton-grid two" aria-busy="true" aria-label="Loading church content">
+    <div className="ab-list" aria-busy="true" aria-label="Loading church content">
       {Array.from({ length: 4 }).map((_, i) => (
         <div className="ab-skeleton" key={i} style={{ animationDelay: `${i * 90}ms` }}>
           <div className="sk-line sk-sub" />
           <div className="sk-line sk-title" />
-          <div className="sk-line" />
           <div className="sk-line short" />
-          <div className="sk-line" />
-          <div className="sk-view" />
         </div>
       ))}
     </div>
   );
 }
 
-// Grid of "basic info" cards; clicking one navigates to its slug-based detail page.
+// Grid of "basic info" items; clicking one navigates to its slug-based detail page.
 function AboutPanel({ data, onOpen }) {
   const basics = data?.basics || [];
   return (
-    <div className="grid two">
+    <div className="ab-list">
       {basics.map((b, i) => (
         <button
           key={i}
-          className="ab-item reveal ab-clickable"
+          className="ab-list-item reveal ab-clickable"
           onClick={() => onOpen(b)}
           style={{ transitionDelay: `${i * 70}ms` }}
         >
-          <div className="ab-sub">{b.title}</div>
-          <p className="muted" style={{ fontSize: 14, lineHeight: 1.6 }}>
-            {b.content}
-          </p>
+          <div>
+            <div className="ab-sub">{b.title}</div>
+            <p className="muted" style={{ fontSize: 14, lineHeight: 1.6 }}>
+              {b.content}
+            </p>
+          </div>
           <span className="ab-view">
-            View details <Icon name="chevron-down" size={14} />
+            View details <Icon name="chevron-right" size={14} />
           </span>
         </button>
       ))}
@@ -188,25 +187,27 @@ function AboutPanel({ data, onOpen }) {
   );
 }
 
-// Card grid of the church's organisations; each links to its detail page.
+// List of the church's organisations; each links to its detail page.
 function OrganisationsPanel({ data, onOpen }) {
   const orgs = data?.organisations || [];
   return (
-    <div className="feat-grid">
+    <div className="ab-list">
       {orgs.map((o, i) => (
         <button
           key={i}
-          className="ab-item reveal ab-clickable"
+          className="ab-list-item reveal ab-clickable"
           onClick={() => onOpen(o)}
           style={{ transitionDelay: `${i * 60}ms` }}
         >
-          <div className="ab-sub">{o.subtitle}</div>
-          <h3>{o.title}</h3>
-          <p className="muted" style={{ fontSize: 13 }}>
-            {o.description}
-          </p>
+          <div>
+            <div className="ab-sub">{o.subtitle}</div>
+            <h3>{o.title}</h3>
+            <p className="muted" style={{ fontSize: 13 }}>
+              {o.description}
+            </p>
+          </div>
           <span className="ab-view">
-            View details <Icon name="chevron-down" size={14} />
+            View details <Icon name="chevron-right" size={14} />
           </span>
         </button>
       ))}
@@ -214,25 +215,27 @@ function OrganisationsPanel({ data, onOpen }) {
   );
 }
 
-// Card grid of weekly activities; each links to its detail page.
+// List of weekly activities; each links to its detail page.
 function ActivitiesPanel({ data, onOpen }) {
   const acts = data?.activities || [];
   return (
-    <div className="feat-grid">
+    <div className="ab-list">
       {acts.map((a, i) => (
         <button
           key={i}
-          className="ab-item reveal ab-clickable"
+          className="ab-list-item reveal ab-clickable"
           onClick={() => onOpen(a)}
           style={{ transitionDelay: `${i * 60}ms` }}
         >
-          <div className="ab-sub">{a.subtitle}</div>
-          <h3>{a.title}</h3>
-          <p className="muted" style={{ fontSize: 13 }}>
-            {a.description}
-          </p>
+          <div>
+            <div className="ab-sub">{a.subtitle}</div>
+            <h3>{a.title}</h3>
+            <p className="muted" style={{ fontSize: 13 }}>
+              {a.description}
+            </p>
+          </div>
           <span className="ab-view">
-            View details <Icon name="chevron-down" size={14} />
+            View details <Icon name="chevron-right" size={14} />
           </span>
         </button>
       ))}
@@ -245,22 +248,24 @@ function EventsPanel({ data }) {
   const events = data?.upcoming_events || [];
   if (!events.length) return <p className="muted center">No upcoming events at the moment.</p>;
   return (
-    <div className="grid two">
+    <div className="ab-list">
       {events.map((e) => (
-        <div className="ab-item" key={e.id}>
+        <div className="ab-list-item" key={e.id}>
           {e.image && <img className="ab-flier" src={e.image} alt={`${e.title} flier`} />}
-          <div className="ab-sub">{fmtEventWhen(e)}</div>
-          <h3>{e.title}</h3>
-          {e.location && (
-            <p className="muted" style={{ fontSize: 13 }}>
-              {'\u2022'} {e.location}
-            </p>
-          )}
-          {e.description && (
-            <p className="muted mt-8" style={{ fontSize: 13 }}>
-              {e.description}
-            </p>
-          )}
+          <div>
+            <div className="ab-sub">{fmtEventWhen(e)}</div>
+            <h3>{e.title}</h3>
+            {e.location && (
+              <p className="muted" style={{ fontSize: 13 }}>
+                {'\u2022'} {e.location}
+              </p>
+            )}
+            {e.description && (
+              <p className="muted mt-8" style={{ fontSize: 13 }}>
+                {e.description}
+              </p>
+            )}
+          </div>
         </div>
       ))}
     </div>
@@ -272,21 +277,23 @@ function AnnouncementsPanel({ data }) {
   const anns = data?.announcements || [];
   if (!anns.length) return <p className="muted center">No announcements right now.</p>;
   return (
-    <div>
+    <div className="ab-list">
       {anns.map((a) => (
-        <div className="ab-item mb-16" key={a.id}>
-          <div className="row between wrap">
-            <h3>{a.title}</h3>
-            <span className={`tag ${a.priority}`}>{a.priority}</span>
-          </div>
-          <p className="muted mt-8" style={{ fontSize: 14 }}>
-            {a.content}
-          </p>
-          {a.date_expires && (
-            <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-              Expires {fmtDate(a.date_expires)}
+        <div className="ab-list-item" key={a.id}>
+          <div>
+            <div className="row between wrap">
+              <h3>{a.title}</h3>
+              <span className={`tag ${a.priority}`}>{a.priority}</span>
+            </div>
+            <p className="muted mt-8" style={{ fontSize: 14 }}>
+              {a.content}
             </p>
-          )}
+            {a.date_expires && (
+              <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+                Expires {fmtDate(a.date_expires)}
+              </p>
+            )}
+          </div>
         </div>
       ))}
     </div>
@@ -297,15 +304,17 @@ function AnnouncementsPanel({ data }) {
 function GalleryPanel() {
   const navigate = useNavigate();
   return (
-    <div className="grid two">
-      <button className="ab-item reveal ab-clickable" onClick={() => navigate('/gallery')}>
-        <div className="ab-sub">Gallery</div>
-        <h3>Photo Gallery</h3>
-        <p className="muted" style={{ fontSize: 13, lineHeight: 1.6 }}>
-          Browse our full collection of church moments, events, and celebrations in an animated gallery.
-        </p>
+    <div className="ab-list">
+      <button className="ab-list-item reveal ab-clickable" onClick={() => navigate('/gallery')}>
+        <div>
+          <div className="ab-sub">Gallery</div>
+          <h3>Photo Gallery</h3>
+          <p className="muted" style={{ fontSize: 13, lineHeight: 1.6 }}>
+            Browse our full collection of church moments, events, and celebrations in an animated gallery.
+          </p>
+        </div>
         <span className="ab-view">
-          View gallery <Icon name="chevron-down" size={14} />
+          View gallery <Icon name="chevron-right" size={14} />
         </span>
       </button>
     </div>

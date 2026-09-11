@@ -1986,71 +1986,86 @@ table.data tbody tr:hover {
   padding: 28px 20px;
   animation: fadeUp 0.35s ease both;
 }
-.ab-item {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 22px;
-  box-shadow: var(--shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+/* Vertical list rows used across the About the Church tabs (card-free). */
+.ab-list {
+  display: flex;
+  flex-direction: column;
 }
-.ab-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-  border-color: var(--theme-light);
+.ab-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 16px 4px;
+  transition: background 0.15s ease, padding-left 0.15s ease;
 }
-.ab-item h3 {
+.ab-list-item:last-child {
+  border-bottom: none;
+}
+.ab-list-item > div {
+  flex: 1 1 0;
+  min-width: 0;
+}
+button.ab-list-item {
+  cursor: pointer;
+}
+button.ab-list-item:hover {
+  background: var(--surface-2);
+  padding-left: 10px;
+}
+button.ab-list-item:focus-visible {
+  outline: 2px solid var(--theme-highlight);
+  outline-offset: 2px;
+}
+.ab-list-item h3 {
+  font-size: 17px;
   margin-bottom: 6px;
+  color: var(--text);
 }
-.ab-item .ab-sub {
+.ab-list-item .ab-sub {
   font-size: 11px;
   color: var(--theme-medium);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
-button.ab-item {
-  width: 100%;
-  text-align: left;
-  font-family: inherit;
-  color: inherit;
-  cursor: pointer;
+.ab-list-item .ab-view {
+  flex-shrink: 0;
 }
-button.ab-item:focus-visible {
-  outline: 2px solid var(--theme-highlight);
-  outline-offset: 2px;
-}
-/* Event flier images: full-bleed across the card top (About page + admin events). */
-.ab-item .ab-flier {
-  width: calc(100% + 44px);
-  margin: -22px -22px 14px -22px;
-  border-radius: 15px 15px 0 0;
+/* Event flier images: full-width row above the event text. */
+.ab-list-item .ab-flier {
+  flex: 1 1 100%;
+  order: -1;
   max-height: 280px;
   object-fit: cover;
-  display: block;
+  border-radius: 14px;
+  margin-bottom: 4px;
 }
-
-/* Skeleton preview shown while the About page content is loading. */
-.skeleton-grid {
-  display: grid;
-  gap: 18px;
-}
-.skeleton-grid.two {
-  grid-template-columns: repeat(2, 1fr);
-}
-@media (max-width: 700px) {
-  .skeleton-grid.two {
-    grid-template-columns: 1fr;
+@media (max-width: 600px) {
+  .ab-list-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }
+
+/* Skeleton preview shown while the About page content is loading (list rows). */
 .ab-skeleton {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 22px;
-  box-shadow: var(--shadow);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 4px;
   overflow: hidden;
+}
+.ab-skeleton:last-child {
+  border-bottom: none;
 }
 .sk-line {
   height: 13px;
@@ -2119,10 +2134,16 @@ label.upload-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 14px;
   font-size: 12px;
   font-weight: 700;
   color: var(--theme-medium);
+  white-space: nowrap;
+}
+.ab-list-item .ab-view svg {
+  transition: transform 0.15s ease;
+}
+button.ab-list-item:hover .ab-view svg {
+  transform: translateX(3px);
 }
 
 .ab-detail-page {
@@ -2130,18 +2151,12 @@ label.upload-btn {
   margin: 0 auto;
   padding: 32px 20px 8px;
 }
-.ab-detail-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: var(--shadow);
-}
-.ab-detail-card h1 {
-  font-size: 26px;
+.ab-detail-content h1 {
+  font-size: 30px;
   margin-bottom: 10px;
+  color: var(--text);
 }
-.ab-detail-card .ab-sub {
+.ab-detail-content .ab-sub {
   font-size: 12px;
   color: var(--theme-medium);
   font-weight: 700;
@@ -2152,28 +2167,30 @@ label.upload-btn {
 .ab-detail-desc {
   font-size: 15px;
   line-height: 1.75;
-  color: var(--text-2);
+  color: var(--text);
 }
 .ab-detail-section {
-  margin-top: 28px;
+  margin-top: 30px;
 }
 .ab-detail-section h3 {
-  font-size: 16px;
+  font-size: 17px;
   margin-bottom: 14px;
   color: var(--theme-medium);
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--border);
 }
 .ab-event-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
 }
 .ab-event {
   display: flex;
   gap: 14px;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface-2);
+  padding: 14px 2px;
+  border-bottom: 1px solid var(--border);
+}
+.ab-event:last-child {
+  border-bottom: none;
 }
 .ab-event-date {
   flex-shrink: 0;
@@ -2192,12 +2209,17 @@ label.upload-btn {
 .ab-event-body h4 {
   font-size: 15px;
   margin-bottom: 4px;
+  color: var(--text);
 }
 .ab-event-body p {
   margin-top: 2px;
   display: flex;
   align-items: center;
   gap: 6px;
+}
+.ab-detail-loading {
+  text-align: center;
+  padding: 40px 10px;
 }
 .ab-detail-section .gallery {
   margin-top: 0;
