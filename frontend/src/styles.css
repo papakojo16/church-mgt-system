@@ -1505,7 +1505,7 @@ table.data tbody tr:hover {
   overflow: hidden;
   text-align: center;
   color: #fff;
-  padding: 96px 24px 80px;
+  padding: 72px 24px 56px;
   background: linear-gradient(135deg, var(--theme-dark), var(--theme-medium));
 }
 .hero-slider {
@@ -3151,10 +3151,10 @@ button.ab-list-item:hover .ab-view svg {
     font-size: 12px;
   }
   .lp-hero {
-    padding: 64px 16px 56px;
+    padding: 44px 16px 36px;
   }
   .lp-hero h1 {
-    font-size: 30px;
+    font-size: 27px;
   }
   .lp-hero .tagline {
     font-size: 15px;
