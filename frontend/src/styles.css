@@ -2048,8 +2048,8 @@ table.data tbody tr:hover {
 @media (max-width: 768px) {
   .ab-tabs {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(3, auto);
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, auto);
     gap: 8px;
     padding: 12px 12px;
     overflow-x: visible;
