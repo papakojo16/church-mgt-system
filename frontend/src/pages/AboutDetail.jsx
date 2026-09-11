@@ -116,7 +116,7 @@ export default function AboutDetail({ kind }) {
         </div>
       </nav>
 
-      <header className="ab-hero">
+      <header className="ab-hero ab-detail-hero">
         <div className="hero-slider">
           <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-1.jpg')" }} />
           <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-2.jpg')" }} />
@@ -124,8 +124,6 @@ export default function AboutDetail({ kind }) {
           <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-4.jpg')" }} />
           <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-5.jpg')" }} />
           <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-6.jpg')" }} />
-          <div className="hero-slide" style={{ backgroundImage: "url('/images/mount-olivet.jpg')" }} />
-          <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-7.jpg')" }} />
           <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-8.jpg')" }} />
           <div className="hero-slide" style={{ backgroundImage: "url('/images/about-worship-9.jpg')" }} />
         </div>
