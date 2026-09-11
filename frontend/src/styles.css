@@ -3131,3 +3131,264 @@ label.upload-btn {
   line-height: 1.5;
   resize: vertical;
 }
+
+/* ================= Global polish & consistency ================= */
+/* Smooth, crisp text rendering everywhere. */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Consistent, accessible keyboard focus ring across interactive elements. */
+:focus-visible {
+  outline: 2px solid var(--theme-highlight);
+  outline-offset: 2px;
+}
+.btn:focus-visible,
+.icon-btn:focus-visible,
+.nav-item:focus-visible,
+.bottom-nav button:focus-visible,
+.ab-tabs button:focus-visible,
+.tabs button:focus-visible,
+.lp-nav-links button:focus-visible,
+.menu-item:focus-visible,
+.lightbox-close:focus-visible,
+.lightbox-download:focus-visible {
+  outline: 2px solid var(--theme-highlight);
+  outline-offset: 2px;
+}
+
+/* Consistent selection color tied to the active theme. */
+::selection {
+  background: var(--theme-medium);
+  color: #fff;
+}
+
+/* Nicer scrollbars on the main scroll surfaces. */
+.content,
+.navrail,
+.table-wrap,
+.menu-sheet,
+.modal {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.content::-webkit-scrollbar,
+.navrail::-webkit-scrollbar,
+.table-wrap::-webkit-scrollbar,
+.menu-sheet::-webkit-scrollbar,
+.modal::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.content::-webkit-scrollbar-thumb,
+.navrail::-webkit-scrollbar-thumb,
+.table-wrap::-webkit-scrollbar-thumb,
+.menu-sheet::-webkit-scrollbar-thumb,
+.modal::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 8px;
+  border: 2px solid var(--surface);
+}
+.content::-webkit-scrollbar-thumb:hover,
+.navrail::-webkit-scrollbar-thumb:hover,
+.table-wrap::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-light);
+}
+
+/* Buttons: richer hover + press + focus feedback, consistent transitions. */
+.btn {
+  transition: transform 0.12s ease, filter 0.15s ease, background 0.15s ease,
+    box-shadow 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.btn.primary {
+  background: linear-gradient(135deg, var(--theme-medium), var(--theme-dark));
+  box-shadow: 0 4px 14px rgba(30, 136, 229, 0.28);
+}
+.btn.primary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(30, 136, 229, 0.34);
+}
+.btn.secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.btn.danger {
+  box-shadow: 0 4px 14px rgba(229, 57, 53, 0.24);
+}
+.btn.danger:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Field inputs: subtle hover, placeholder and disabled consistency. */
+.field input:hover,
+.field select:hover,
+.field textarea:hover,
+.search input:hover {
+  border-color: var(--theme-light);
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.search input:focus {
+  border-color: var(--theme-highlight);
+  box-shadow: 0 0 0 3px var(--theme-bg);
+}
+.field ::placeholder,
+.search ::placeholder {
+  color: var(--text-2);
+  opacity: 0.7;
+}
+.field input:disabled,
+.field select:disabled,
+.field textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Cards: softer hover lift, shared transition. */
+.card,
+.stat-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.card:not(.clickable):hover,
+.stat-card:hover {
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.1);
+}
+
+/* Table polish: sticky header + subtle focus row. */
+.table-wrap {
+  box-shadow: var(--shadow);
+}
+table.data thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  box-shadow: 0 1px 0 var(--border);
+}
+table.data tbody tr:focus,
+table.data tbody tr:focus-within {
+  background: var(--theme-bg);
+}
+table.data tbody tr {
+  transition: background 0.12s ease;
+}
+
+/* Modal: crisp entrance animation + easing overlay. */
+.modal-overlay {
+  animation: overlayIn 0.18s ease both;
+}
+.modal {
+  animation: modalIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Snackbar: subtle slide + shadow consistent with the design. */
+.snackbar {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  font-weight: 500;
+}
+
+/* Empty states read better with a touch more breathing room. */
+.empty {
+  padding: 48px 16px;
+}
+.empty .spinner {
+  margin-bottom: 12px;
+}
+
+/* Navrail: refined active state with a left accent bar. */
+.nav-item {
+  position: relative;
+}
+.nav-item.active {
+  background: var(--theme-bg);
+  box-shadow: inset 0 0 0 1px rgba(144, 202, 249, 0.25);
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--theme-medium);
+}
+.nav-item.active svg {
+  color: var(--theme-medium);
+}
+
+/* Tabs: consistent bottom-border active style with smooth hover. */
+.tabs button,
+.ab-tabs button {
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+/* Header banner: subtle depth + breathing room. */
+.header-banner {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Stat cards: full-height icon tiles look more intentional. */
+.stat-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Event badge: richer highlight when the section card is hovered. */
+.event-badge {
+  background: var(--theme-bg);
+  border-color: var(--theme-light);
+}
+.event-badge .day {
+  color: var(--theme-dark);
+}
+
+/* Landing hero: keep section poise with soft shadow separation. */
+.lp-hero::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 60px;
+  background: linear-gradient(180deg, transparent, var(--bg));
+  pointer-events: none;
+}
+
+/* Mobile: keep the modal entrance snappy and nav patterns intact. */
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay,
+  .modal {
+    animation: none;
+  }
+  .btn,
+  .card,
+  .stat-card {
+    box-shadow: none;
+  }
+}
