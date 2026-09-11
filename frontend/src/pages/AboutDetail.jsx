@@ -207,7 +207,7 @@ export default function AboutDetail({ kind }) {
       </footer>
 
       {viewPic && (
-        <div className="lightbox" onClick={() => setViewPic(null)}>
+        <div className="lightbox open" onClick={() => setViewPic(null)}>
           <button className="lightbox-close" title="Close">
             <Icon name="x" size={22} />
           </button>
